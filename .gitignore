@@ -1,0 +1,17 @@
+# Verilator build çıktıları
+obj_dir/
+*.o
+*.d
+
+# RISC-V build çıktıları  
+*.elf
+*.bin
+*.bak
+
+# Simülatör çıktıları
+*.vcd
+*.fst
+
+# Editör
+*.swp
+.vscode/
