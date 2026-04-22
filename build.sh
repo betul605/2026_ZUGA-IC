@@ -1,6 +1,19 @@
 #!/bin/bash
+# ============================================================================
+# build.sh — Modüler SoC build scripti
+# ============================================================================
+
+set -e  # Hata varsa dur
+
 cd ~/cv32_sim
+
+# Program dosyasını çalışma dizinine kopyala (Verilator $readmemh için)
+cp sw/hello.hex ./hello.hex
+
+# Önceki build'i temizle
 rm -rf obj_dir
+
+# Verilator derleme
 verilator --binary --sv \
   -I$HOME/cv32e40p/rtl \
   -I$HOME/cv32e40p/rtl/include \
@@ -33,7 +46,10 @@ verilator --binary --sv \
   $HOME/cv32e40p/rtl/cv32e40p_fifo.sv \
   $HOME/cv32e40p/rtl/cv32e40p_alu_div.sv \
   $HOME/cv32e40p/rtl/cv32e40p_apu_disp.sv \
-  tb_top.sv \
+  rtl/ram.sv \
+  rtl/uart_primitive.sv \
+  rtl/soc_top.sv \
+  tb/tb_top.sv \
   --top-module tb_top \
   -Wno-UNOPTFLAT -Wno-WIDTHEXPAND -Wno-WIDTHTRUNC \
   -Wno-TIMESCALEMOD -Wno-BLKANDNBLK -Wno-COMBDLY \
@@ -41,3 +57,6 @@ verilator --binary --sv \
   -Wno-UNUSEDSIGNAL -Wno-UNUSEDPARAM -Wno-GENUNNAMED \
   -Wno-VARHIDDEN -Wno-BLKSEQ \
   -o sim_cv32
+
+echo ""
+echo "=== Build basarili. Calistirmak icin: ./obj_dir/sim_cv32 ==="d
