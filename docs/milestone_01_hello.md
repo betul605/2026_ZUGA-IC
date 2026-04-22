@@ -1,42 +1,66 @@
-# Milestone 01: İlk Çalışan SoC — "Hi"
-
+# Milestone 01: İlk Çalışan SoC — "Hi" mesajı
 Tarih: 22 Nisan 2026
+Takım: ZUGA-IC (Betül Bedir, Umur Buğra Dikmen)
 
-## Durum
-CV32E40P RISC-V çekirdeği, Verilator simülasyonunda basit bir "Hi\n"
-mesajını memory-mapped UART üzerinden başarıyla bastı.
+## Hedef
+CV32E40P RISC-V çekirdeğini Verilator'da ayağa kaldırmak,
+basit bir RISC-V programı çalıştırıp memory-mapped UART üzerinden
+bir karakter yazdırmak.
 
-## Altyapı
-- Verilator 5.020
-- xPack RISC-V GCC 13.2.0
-- CV32E40P (cv32e40p_core, FPU=0)
+## Ortam
+- İşletim sistemi: Ubuntu Linux
+- Simülatör: Verilator 5.020
+- RISC-V toolchain: xPack RISC-V GCC 13.2.0
+- Çekirdek: CV32E40P (cv32e40p_core, FPU=0)
 
-## Bellek haritası (geçici — smoke test için)
-- Instruction RAM: 0x00000000 - 0x00003FFF (16 KB modellenmiş)
-- Data memory-mapped UART: 0x10000000
+## Bellek Haritası (geçici, smoke test için)
+- 0x00000000 - 0x00003FFF: RAM (16 KB, tek blok)
+- 0x10000000: Memory-mapped UART (sadece write)
 
-## Test programı
-rv32i assembly, hello.S:
-  lui x1, 0x10000         # UART adresi
-  addi x2, x0, 72         # 'H'
-  sw x2, 0(x1)
-  addi x2, x0, 105        # 'i'
-  sw x2, 0(x1)
-  addi x2, x0, 10         # '\n'
-  sw x2, 0(x1)
-  jal x0, loop_end
+## Test Programı (hello.S, rv32i)
+4 adet NOP (pipeline ısınması)
+lui x1, 0x10000 ; UART adresi
+2 adet NOP
+addi x2, x0, 72 ; 'H'
+sw x2, 0(x1)
+NOP
+addi x2, x0, 105 ; 'i'
+sw x2, 0(x1)
+NOP
+addi x2, x0, 10 ; '\n'
+sw x2, 0(x1)
+NOP
+loop_end: jal x0, loop_end
+
+## Karşılaşılan Problemler ve Çözümleri
+
+### Problem 1: cv32e40p_top FPU paketi arıyor
+cv32e40p_top modülü FPU wrapper içerdiğinden fpnew_pkg paketini
+arıyor. FPU=0 parametresi olsa bile derleme hata veriyor.
+Çözüm: cv32e40p_core kullanıldı (sade çekirdek, FPU wrapper yok).
+
+### Problem 2: Hex dosya formatı
+objcopy veya benzeri araçların ürettiği hex'ler her satıra birden
+çok word koyuyordu. Verilator $readmemh bunu tutarsız şekilde
+okuyordu.
+Çözüm: Python script ile her satıra tek word yazan özel dönüştürücü
+yazıldı (binary → düz hex).
+
+### Problem 3: Compressed instruction karışıklığı
+rv32imc ile derlenen kod compressed (16-bit) komutlar içeriyordu.
+Basit testbench 4-byte aligned okuduğu için karışıklık çıkıyordu.
+Çözüm: -march=rv32i ile compressed kapatıldı.
+
+### Problem 4: OBI instruction rdata latency
+OBI protokolünde rdata, request/grant cycle'ından BİR CYCLE SONRA
+dönmeli. İlk testbench combinational okuyordu, çekirdek yanlış
+komutlar fetch ediyordu.
+Çözüm: Testbench içinde adres latch'lendi, rdata o adres üzerinden
+bir cycle sonra verildi. Çekirdek doğru komutları fetch etti.
 
 ## Sonuç
-UART output: Hi
-(ve sonra sonsuz döngü — beklenen davranış)
+UART output: "H" (tam "Hi\n" bir sonraki milestone'da sağlanacak)
 
-## Çözülen teknik problem
-OBI protokolünde instruction_rdata'nın gnt ile aynı cycle yerine
-bir cycle gecikmeli dönmesi gerekiyor. İlk testbench'te combinational
-bağlı olduğu için çekirdek yanlış komutlar fetch ediyordu. Adres
-latch'lenerek düzeltildi.
-
-## Sonraki adım
-- SoC yapısını modüler hale getir (ram.sv, uart.sv ayrılsın)
-- OBI-AXI Bridge tasarla
-- İlk AXI4-Lite slave: GPIO
+## Sonraki Adım
+- SoC'yi modüler yapıya dönüştür (ram.sv, uart.sv, soc_top.sv)
+- Decoder ekle (birden fazla slave'in bus'ta olabilmesi için)
