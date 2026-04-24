@@ -8,7 +8,7 @@ set -e  # Hata varsa dur
 cd ~/cv32_sim
 
 # Program dosyasını çalışma dizinine kopyala (Verilator $readmemh için)
-cp sw/test_gpio.hex ./hello.hex
+cp sw/test_timer.hex ./hello.hex
 
 # Önceki build'i temizle
 rm -rf obj_dir
@@ -49,6 +49,7 @@ verilator --binary --sv \
   rtl/ram.sv \
   rtl/uart_primitive.sv \
   rtl/gpio.sv \
+  rtl/timer.sv \
   rtl/soc_top.sv \
   tb/tb_top.sv \
   --top-module tb_top \

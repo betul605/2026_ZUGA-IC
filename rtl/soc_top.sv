@@ -94,13 +94,15 @@ module soc_top (
     //   addr[31:28] == 4'h1  → UART
     //   diğer                → RAM data port
     // ========================================================================
-    // Adres dekoderi — 3 slave
-    //   0x1xxxxxxx -> UART
-    //   0x4xxxxxxx -> GPIO
-    //   diger       -> RAM data port
-    wire sel_uart_req = (data_addr[31:28] == 4'h1);
-    wire sel_gpio_req = (data_addr[31:28] == 4'h4);
-    wire sel_ram_req  = ~(sel_uart_req | sel_gpio_req);
+    // Adres dekoderi — 4 slave
+    //   0x1xxxxxxx        -> UART
+    //   0x40000xxx        -> GPIO
+    //   0x40001xxx        -> Timer
+    //   diger              -> RAM data port
+    wire sel_uart_req  = (data_addr[31:28] == 4'h1);
+    wire sel_gpio_req  = (data_addr[31:28] == 4'h4) && (data_addr[12] == 1'b0);
+    wire sel_timer_req = (data_addr[31:28] == 4'h4) && (data_addr[12] == 1'b1);
+    wire sel_ram_req   = ~(sel_uart_req | sel_gpio_req | sel_timer_req);
 
     // RAM data port sinyalleri
     logic        ram_b_req, ram_b_gnt, ram_b_rvalid;
@@ -114,35 +116,45 @@ module soc_top (
     logic        gpio_req, gpio_gnt, gpio_rvalid;
     logic [31:0] gpio_rdata;
 
+    // Timer sinyalleri
+    logic        timer_req, timer_gnt, timer_rvalid;
+    logic [31:0] timer_rdata;
+
     // Req'i uygun module yonlendir
-    assign ram_b_req = data_req & sel_ram_req;
-    assign uart_req  = data_req & sel_uart_req;
-    assign gpio_req  = data_req & sel_gpio_req;
+    assign ram_b_req  = data_req & sel_ram_req;
+    assign uart_req   = data_req & sel_uart_req;
+    assign gpio_req   = data_req & sel_gpio_req;
+    assign timer_req  = data_req & sel_timer_req;
 
     // Gnt hemen doner — request cycle'da
-    assign data_gnt = sel_uart_req ? uart_gnt :
-                      sel_gpio_req ? gpio_gnt :
-                                     ram_b_gnt;
+    assign data_gnt = sel_uart_req  ? uart_gnt  :
+                      sel_gpio_req  ? gpio_gnt  :
+                      sel_timer_req ? timer_gnt :
+                                      ram_b_gnt;
 
     // rvalid ve rdata icin select'i latch'le (OBI timing)
-    logic sel_uart_q, sel_gpio_q;
+    logic sel_uart_q, sel_gpio_q, sel_timer_q;
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
-            sel_uart_q <= 1'b0;
-            sel_gpio_q <= 1'b0;
+            sel_uart_q  <= 1'b0;
+            sel_gpio_q  <= 1'b0;
+            sel_timer_q <= 1'b0;
         end else if (data_req && data_gnt) begin
-            sel_uart_q <= sel_uart_req;
-            sel_gpio_q <= sel_gpio_req;
+            sel_uart_q  <= sel_uart_req;
+            sel_gpio_q  <= sel_gpio_req;
+            sel_timer_q <= sel_timer_req;
         end
     end
 
-    assign data_rvalid = sel_uart_q ? uart_rvalid :
-                         sel_gpio_q ? gpio_rvalid :
-                                      ram_b_rvalid;
+    assign data_rvalid = sel_uart_q  ? uart_rvalid  :
+                         sel_gpio_q  ? gpio_rvalid  :
+                         sel_timer_q ? timer_rvalid :
+                                       ram_b_rvalid;
 
-    assign data_rdata  = sel_uart_q ? uart_rdata :
-                         sel_gpio_q ? gpio_rdata :
-                                      ram_b_rdata;
+    assign data_rdata  = sel_uart_q  ? uart_rdata  :
+                         sel_gpio_q  ? gpio_rdata  :
+                         sel_timer_q ? timer_rdata :
+                                       ram_b_rdata;
 
     // ========================================================================
     // RAM — 4K word = 16 KB
@@ -207,6 +219,23 @@ module soc_top (
 
         .gpio_in_i  (gpio_in_i),
         .gpio_out_o (gpio_out_o)
+    );
+
+    // ========================================================================
+    // Timer — 0x40001xxx bolgesi
+    // ========================================================================
+    timer u_timer (
+        .clk_i      (clk_i),
+        .rst_ni     (rst_ni),
+
+        .req_i      (timer_req),
+        .gnt_o      (timer_gnt),
+        .rvalid_o   (timer_rvalid),
+        .we_i       (data_we),
+        .be_i       (data_be),
+        .addr_i     (data_addr),
+        .wdata_i    (data_wdata),
+        .rdata_o    (timer_rdata)
     );
 
 endmodule
