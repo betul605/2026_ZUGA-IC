@@ -7,12 +7,18 @@ module tb_top;
 
     always #5 clk = ~clk;
 
+    // GPIO test pinleri
+    logic [15:0] gpio_in  = 16'h1234;
+    logic [15:0] gpio_out;
+
     soc_top u_soc (
-        .clk_i  (clk),
-        .rst_ni (rst_n)
+        .clk_i      (clk),
+        .rst_ni     (rst_n),
+        .gpio_in_i  (gpio_in),
+        .gpio_out_o (gpio_out)
     );
 
-    // Debug
+    // Debug: instruction fetch izle
     int if_count = 0;
     always_ff @(posedge clk) begin
         if (rst_n && u_soc.instr_req && u_soc.instr_gnt && if_count < 80) begin
@@ -22,6 +28,7 @@ module tb_top;
         end
     end
 
+    // Debug: data yazma izle
     int dw_count = 0;
     always_ff @(posedge clk) begin
         if (rst_n && u_soc.data_req && u_soc.data_gnt && u_soc.data_we && dw_count < 40) begin
@@ -31,7 +38,7 @@ module tb_top;
         end
     end
 
-    // Cycle sayici — 1000 cycle sonra $finish
+    // Cycle sayaci — 1000 cycle sonra $finish
     int cycle_count = 0;
     always_ff @(posedge clk) begin
         if (rst_n) begin
@@ -48,12 +55,11 @@ module tb_top;
     initial begin
         $display("=== Simulasyon basliyor ===");
         rst_n = 0;
-        #200;              // 200ns reset tut (20 cycle)
+        #200;
         @(posedge clk);
         rst_n = 1;
         $display("[SIM] Reset kaldirildi");
         $write("UART output: ");
-        // Artik cycle_count sayaci simulasyonu bitirecek
     end
 
 endmodule

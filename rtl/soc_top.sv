@@ -6,8 +6,12 @@
 // ============================================================================
 
 module soc_top (
-    input  logic clk_i,
-    input  logic rst_ni
+    input  logic        clk_i,
+    input  logic        rst_ni,
+
+    // GPIO harici pinleri (SoC disina)
+    input  logic [15:0] gpio_in_i,
+    output logic [15:0] gpio_out_o
 );
 
     // ----- Çekirdek OBI instruction port -----
@@ -90,8 +94,13 @@ module soc_top (
     //   addr[31:28] == 4'h1  → UART
     //   diğer                → RAM data port
     // ========================================================================
+    // Adres dekoderi — 3 slave
+    //   0x1xxxxxxx -> UART
+    //   0x4xxxxxxx -> GPIO
+    //   diger       -> RAM data port
     wire sel_uart_req = (data_addr[31:28] == 4'h1);
-    wire sel_ram_req  = ~sel_uart_req;
+    wire sel_gpio_req = (data_addr[31:28] == 4'h4);
+    wire sel_ram_req  = ~(sel_uart_req | sel_gpio_req);
 
     // RAM data port sinyalleri
     logic        ram_b_req, ram_b_gnt, ram_b_rvalid;
@@ -101,24 +110,39 @@ module soc_top (
     logic        uart_req, uart_gnt, uart_rvalid;
     logic [31:0] uart_rdata;
 
-    // Req'i uygun modüle yonlendir
+    // GPIO sinyalleri
+    logic        gpio_req, gpio_gnt, gpio_rvalid;
+    logic [31:0] gpio_rdata;
+
+    // Req'i uygun module yonlendir
     assign ram_b_req = data_req & sel_ram_req;
     assign uart_req  = data_req & sel_uart_req;
+    assign gpio_req  = data_req & sel_gpio_req;
 
     // Gnt hemen doner — request cycle'da
-    assign data_gnt = sel_uart_req ? uart_gnt : ram_b_gnt;
+    assign data_gnt = sel_uart_req ? uart_gnt :
+                      sel_gpio_req ? gpio_gnt :
+                                     ram_b_gnt;
 
-    // rvalid icin SELECT'i bir cycle GECIKMELI kullan
-    // cunku rvalid req'ten bir cycle sonra gelir ve o cycle'da
-    // data_addr baska bir seye donmus olabilir.
-    logic sel_uart_q;
+    // rvalid ve rdata icin select'i latch'le (OBI timing)
+    logic sel_uart_q, sel_gpio_q;
     always_ff @(posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) sel_uart_q <= 1'b0;
-        else if (data_req && data_gnt) sel_uart_q <= sel_uart_req;
+        if (!rst_ni) begin
+            sel_uart_q <= 1'b0;
+            sel_gpio_q <= 1'b0;
+        end else if (data_req && data_gnt) begin
+            sel_uart_q <= sel_uart_req;
+            sel_gpio_q <= sel_gpio_req;
+        end
     end
 
-    assign data_rvalid = sel_uart_q ? uart_rvalid : ram_b_rvalid;
-    assign data_rdata  = sel_uart_q ? uart_rdata  : ram_b_rdata;
+    assign data_rvalid = sel_uart_q ? uart_rvalid :
+                         sel_gpio_q ? gpio_rvalid :
+                                      ram_b_rvalid;
+
+    assign data_rdata  = sel_uart_q ? uart_rdata :
+                         sel_gpio_q ? gpio_rdata :
+                                      ram_b_rdata;
 
     // ========================================================================
     // RAM — 4K word = 16 KB
@@ -163,6 +187,26 @@ module soc_top (
         .addr_i     (data_addr),
         .wdata_i    (data_wdata),
         .rdata_o    (uart_rdata)
+    );
+
+    // ========================================================================
+    // GPIO — 0x4xxxxxxx bolgesi
+    // ========================================================================
+    gpio u_gpio (
+        .clk_i      (clk_i),
+        .rst_ni     (rst_ni),
+
+        .req_i      (gpio_req),
+        .gnt_o      (gpio_gnt),
+        .rvalid_o   (gpio_rvalid),
+        .we_i       (data_we),
+        .be_i       (data_be),
+        .addr_i     (data_addr),
+        .wdata_i    (data_wdata),
+        .rdata_o    (gpio_rdata),
+
+        .gpio_in_i  (gpio_in_i),
+        .gpio_out_o (gpio_out_o)
     );
 
 endmodule
