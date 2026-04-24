@@ -15,3 +15,6 @@ obj_dir/
 # Editör
 *.swp
 .vscode/
+
+# Build script tarafindan kopyalanan gecici hex (sw/ altindakiler takip edilir)
+/hello.hex
