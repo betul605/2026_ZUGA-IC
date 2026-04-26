@@ -7,8 +7,8 @@ _start:
     nop
     nop
 
-    # UART adresini x1'e yükle (0x10000000)
-    lui   x1, 0x10000
+    # UART adresini x1'e yukle (0x40002000, EK-2 base)
+    lui   x1, 0x40002
 
     # Bir kaç nop daha, x1'in WB stage'i bitsin
     nop
@@ -16,15 +16,15 @@ _start:
 
     # Şimdi yazabiliriz
     addi  x2, x0, 72        # 'H'
-    sw    x2, 0(x1)
+    sw    x2, 12(x1)
     nop
 
     addi  x2, x0, 105       # 'i'
-    sw    x2, 0(x1)
+    sw    x2, 12(x1)
     nop
 
     addi  x2, x0, 10        # '\n'
-    sw    x2, 0(x1)
+    sw    x2, 12(x1)
     nop
 
 loop_end:

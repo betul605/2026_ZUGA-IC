@@ -18,7 +18,7 @@ _start:
     nop
 
     # x10 = UART base adresi (0x10000000)
-    lui   x10, 0x10000
+    lui   x10, 0x40002
 
     # x11 = GPIO base adresi (0x40000000)
     lui   x11, 0x40000
@@ -43,21 +43,21 @@ _start:
 fail_path:
     # 'F' (0x46) -> UART
     addi  x14, x0, 0x46
-    sw    x14, 0(x10)
+    sw    x14, 12(x10)
     nop
     # newline
     addi  x14, x0, 0x0A
-    sw    x14, 0(x10)
+    sw    x14, 12(x10)
     j     end
 
 pass_path:
     # 'P' (0x50) -> UART
     addi  x14, x0, 0x50
-    sw    x14, 0(x10)
+    sw    x14, 12(x10)
     nop
     # newline
     addi  x14, x0, 0x0A
-    sw    x14, 0(x10)
+    sw    x14, 12(x10)
 
 end:
     jal   x0, end

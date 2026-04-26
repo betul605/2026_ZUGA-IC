@@ -19,7 +19,7 @@ _start:
     nop
 
     # x10 = UART base (0x10000000)
-    lui   x10, 0x10000
+    lui   x10, 0x40002
 
     # x11 = Timer base (0x40001000)
     lui   x11, 0x40001
@@ -59,17 +59,17 @@ _start:
 fail_path:
     # 'F' (0x46) -> UART
     addi  x14, x0, 0x46
-    sw    x14, 0(x10)
+    sw    x14, 12(x10)
     addi  x14, x0, 0x0A
-    sw    x14, 0(x10)
+    sw    x14, 12(x10)
     j     end
 
 pass_path:
     # 'T' (0x54) -> UART (T for Timer!)
     addi  x14, x0, 0x54
-    sw    x14, 0(x10)
+    sw    x14, 12(x10)
     addi  x14, x0, 0x0A
-    sw    x14, 0(x10)
+    sw    x14, 12(x10)
 
 end:
     jal   x0, end

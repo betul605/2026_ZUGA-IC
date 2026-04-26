@@ -47,7 +47,7 @@ verilator --binary --sv \
   $HOME/cv32e40p/rtl/cv32e40p_alu_div.sv \
   $HOME/cv32e40p/rtl/cv32e40p_apu_disp.sv \
   rtl/ram.sv \
-  rtl/uart_primitive.sv \
+  rtl/uart.sv \
   rtl/gpio.sv \
   rtl/timer.sv \
   rtl/soc_top.sv \

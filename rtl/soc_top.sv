@@ -99,9 +99,9 @@ module soc_top (
     //   0x40000xxx        -> GPIO
     //   0x40001xxx        -> Timer
     //   diger              -> RAM data port
-    wire sel_uart_req  = (data_addr[31:28] == 4'h1);
-    wire sel_gpio_req  = (data_addr[31:28] == 4'h4) && (data_addr[12] == 1'b0);
-    wire sel_timer_req = (data_addr[31:28] == 4'h4) && (data_addr[12] == 1'b1);
+    wire sel_uart_req  = (data_addr[31:28] == 4'h4) && (data_addr[13] == 1'b1) && (data_addr[12] == 1'b0);
+    wire sel_gpio_req  = (data_addr[31:28] == 4'h4) && (data_addr[13] == 1'b0) && (data_addr[12] == 1'b0);
+    wire sel_timer_req = (data_addr[31:28] == 4'h4) && (data_addr[13] == 1'b0) && (data_addr[12] == 1'b1);
     wire sel_dram_req  = (data_addr[31:24] == 8'h00) && (data_addr[17] == 1'b1);
     wire sel_ram_req   = ~(sel_uart_req | sel_gpio_req | sel_timer_req | sel_dram_req);
 
@@ -225,9 +225,9 @@ module soc_top (
     );
 
     // ========================================================================
-    // UART — 0x10000000 bölgesi
+    // UART — 0x40002000 bolgesi (EK-2 uyumlu, CPB/STP/RDR/TDR/CFG)
     // ========================================================================
-    uart_primitive u_uart (
+    uart u_uart (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
 
