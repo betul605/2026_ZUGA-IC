@@ -62,4 +62,33 @@ module tb_top;
         $write("UART output: ");
     end
 
+// ========================================================================
+    // SVA Protocol Check — OBI bus assertion'lari
+    // soc_top icindeki data_* ve instr_* sinyallerine bind ile baglanir.
+    // RTL'i degistirmeden protokol kurallarini kontrol eder.
+    // ========================================================================
+    bind soc_top obi_assertions #(.BUS_NAME("DATA")) u_assert_data (
+        .clk_i    (clk_i),
+        .rst_ni   (rst_ni),
+        .req_i    (data_req),
+        .gnt_i    (data_gnt),
+        .rvalid_i (data_rvalid),
+        .we_i     (data_we),
+        .addr_i   (data_addr),
+        .wdata_i  (data_wdata),
+        .rdata_i  (data_rdata)
+    );
+
+    bind soc_top obi_assertions #(.BUS_NAME("INSTR")) u_assert_instr (
+        .clk_i    (clk_i),
+        .rst_ni   (rst_ni),
+        .req_i    (instr_req),
+        .gnt_i    (instr_gnt),
+        .rvalid_i (instr_rvalid),
+        .we_i     (1'b0),
+        .addr_i   (instr_addr),
+        .wdata_i  (32'h0),
+        .rdata_i  (instr_rdata)
+    );
+
 endmodule

@@ -14,7 +14,7 @@ cp sw/test_timer.hex ./hello.hex
 rm -rf obj_dir
 
 # Verilator derleme
-verilator --binary --sv \
+verilator --binary --assert --sv \
   -I$HOME/cv32e40p/rtl \
   -I$HOME/cv32e40p/rtl/include \
   -I$HOME/cv32e40p/bhv \
@@ -51,6 +51,7 @@ verilator --binary --sv \
   rtl/gpio.sv \
   rtl/timer.sv \
   rtl/soc_top.sv \
+  tb/obi_assertions.sv \
   tb/tb_top.sv \
   --top-module tb_top \
   -Wno-UNOPTFLAT -Wno-WIDTHEXPAND -Wno-WIDTHTRUNC \
