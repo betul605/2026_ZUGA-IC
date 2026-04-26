@@ -102,7 +102,8 @@ module soc_top (
     wire sel_uart_req  = (data_addr[31:28] == 4'h1);
     wire sel_gpio_req  = (data_addr[31:28] == 4'h4) && (data_addr[12] == 1'b0);
     wire sel_timer_req = (data_addr[31:28] == 4'h4) && (data_addr[12] == 1'b1);
-    wire sel_ram_req   = ~(sel_uart_req | sel_gpio_req | sel_timer_req);
+    wire sel_dram_req  = (data_addr[31:24] == 8'h00) && (data_addr[17] == 1'b1);
+    wire sel_ram_req   = ~(sel_uart_req | sel_gpio_req | sel_timer_req | sel_dram_req);
 
     // RAM data port sinyalleri
     logic        ram_b_req, ram_b_gnt, ram_b_rvalid;
@@ -120,51 +121,61 @@ module soc_top (
     logic        timer_req, timer_gnt, timer_rvalid;
     logic [31:0] timer_rdata;
 
+    // DRAM sinyalleri
+    logic        dram_req, dram_gnt, dram_rvalid;
+    logic [31:0] dram_rdata;
+
     // Req'i uygun module yonlendir
     assign ram_b_req  = data_req & sel_ram_req;
     assign uart_req   = data_req & sel_uart_req;
     assign gpio_req   = data_req & sel_gpio_req;
     assign timer_req  = data_req & sel_timer_req;
+    assign dram_req   = data_req & sel_dram_req;
 
     // Gnt hemen doner — request cycle'da
     assign data_gnt = sel_uart_req  ? uart_gnt  :
                       sel_gpio_req  ? gpio_gnt  :
                       sel_timer_req ? timer_gnt :
+                      sel_dram_req  ? dram_gnt  :
                                       ram_b_gnt;
 
     // rvalid ve rdata icin select'i latch'le (OBI timing)
-    logic sel_uart_q, sel_gpio_q, sel_timer_q;
+    logic sel_uart_q, sel_gpio_q, sel_timer_q, sel_dram_q;
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
             sel_uart_q  <= 1'b0;
             sel_gpio_q  <= 1'b0;
             sel_timer_q <= 1'b0;
+            sel_dram_q  <= 1'b0;
         end else if (data_req && data_gnt) begin
             sel_uart_q  <= sel_uart_req;
             sel_gpio_q  <= sel_gpio_req;
             sel_timer_q <= sel_timer_req;
+            sel_dram_q  <= sel_dram_req;
         end
     end
 
     assign data_rvalid = sel_uart_q  ? uart_rvalid  :
                          sel_gpio_q  ? gpio_rvalid  :
                          sel_timer_q ? timer_rvalid :
+                         sel_dram_q  ? dram_rvalid  :
                                        ram_b_rvalid;
 
     assign data_rdata  = sel_uart_q  ? uart_rdata  :
                          sel_gpio_q  ? gpio_rdata  :
                          sel_timer_q ? timer_rdata :
+                         sel_dram_q  ? dram_rdata  :
                                        ram_b_rdata;
 
     // ========================================================================
-    // RAM — 4K word = 16 KB
-    // Port A: instruction
-    // Port B: data (yalnızca RAM adreslerinde)
+    // IRAM — 8 KB instruction RAM (mevcut, geriye uyumluluk icin data fallback)
+    //   Port A: instruction (CV32E40P fetch)
+    //   Port B: data (RAM adres araligi disinda kalan fallback erisim)
     // ========================================================================
     ram #(
-        .SIZE_WORDS (4096),
+        .SIZE_WORDS (2048),
         .MEM_FILE   ("hello.hex")
-    ) u_ram (
+    ) u_iram (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
 
@@ -182,6 +193,35 @@ module soc_top (
         .b_addr_i   (data_addr),
         .b_wdata_i  (data_wdata),
         .b_rdata_o  (ram_b_rdata)
+    );
+
+    // ========================================================================
+    // DRAM — 8 KB veri RAM (0x00020000-0x00021FFF)
+    //   Sadece data port; instruction port tie-off.
+    // ========================================================================
+    ram #(
+        .SIZE_WORDS (2048),
+        .MEM_FILE   ("")
+    ) u_dram (
+        .clk_i      (clk_i),
+        .rst_ni     (rst_ni),
+
+        // Instruction port: kullanilmiyor, tie-off
+        .a_req_i    (1'b0),
+        .a_gnt_o    (),
+        .a_rvalid_o (),
+        .a_addr_i   ('0),
+        .a_rdata_o  (),
+
+        // Data port: DRAM erisimi
+        .b_req_i    (dram_req),
+        .b_gnt_o    (dram_gnt),
+        .b_rvalid_o (dram_rvalid),
+        .b_we_i     (data_we),
+        .b_be_i     (data_be),
+        .b_addr_i   (data_addr),
+        .b_wdata_i  (data_wdata),
+        .b_rdata_o  (dram_rdata)
     );
 
     // ========================================================================
