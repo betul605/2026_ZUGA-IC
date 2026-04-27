@@ -8,6 +8,7 @@ module tb_top;
     always #5 clk = ~clk;
 
     // GPIO test pinleri
+    logic        uart_tx;
     logic [15:0] gpio_in  = 16'h1234;
     logic [15:0] gpio_out;
 
@@ -15,7 +16,8 @@ module tb_top;
         .clk_i      (clk),
         .rst_ni     (rst_n),
         .gpio_in_i  (gpio_in),
-        .gpio_out_o (gpio_out)
+        .gpio_out_o (gpio_out),
+        .uart_tx_o  (uart_tx)
     );
 
     // Debug: instruction fetch izle
@@ -36,6 +38,17 @@ module tb_top;
                      $time, u_soc.data_addr, u_soc.data_wdata);
             dw_count <= dw_count + 1;
         end
+    end
+
+    // tx_o (UART serial out) izleyicisi - her degisikligi raporla
+    logic uart_tx_prev = 1'b1;
+    int   tx_edge_count = 0;
+    always_ff @(posedge clk) begin
+        if (rst_n && (uart_tx != uart_tx_prev) && tx_edge_count < 30) begin
+            $display("[%0t] TX_PIN edge: %b -> %b", $time, uart_tx_prev, uart_tx);
+            tx_edge_count <= tx_edge_count + 1;
+        end
+        uart_tx_prev <= uart_tx;
     end
 
     // Cycle sayaci — 1000 cycle sonra $finish

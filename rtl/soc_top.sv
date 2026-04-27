@@ -11,7 +11,10 @@ module soc_top (
 
     // GPIO harici pinleri (SoC disina)
     input  logic [15:0] gpio_in_i,
-    output logic [15:0] gpio_out_o
+    output logic [15:0] gpio_out_o,
+
+    // UART serial output (FPGA pin)
+    output logic        uart_tx_o
 );
 
     // ----- Çekirdek OBI instruction port -----
@@ -238,7 +241,8 @@ module soc_top (
         .be_i       (data_be),
         .addr_i     (data_addr),
         .wdata_i    (data_wdata),
-        .rdata_o    (uart_rdata)
+        .rdata_o    (uart_rdata),
+        .tx_o       (uart_tx_o)
     );
 
     // ========================================================================
