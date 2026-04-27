@@ -62,7 +62,12 @@ Beklenen: data=0x00000054 satiri (T = Timer test PASS)
 - Ozel OBI decoder (pulp-platform/axi yerine, basit olsun diye)
 - OBI bus select latch: rvalid yolunda select sinyali latch'lenmeli
 
-Detaylar: docs/milestone_XX.md ve docs/DTR_DURUM.md
+Detaylar:
+- docs/milestone_XX.md (M01-M10, her milestone icin ayri rapor)
+- docs/DTR_RAPORU_v0.md (DTR sablonu, 680 satir)
+- docs/MIMARI_DIYAGRAM.md (3 Mermaid diyagram, GitHub render)
+- docs/OTR_DTR_KARSILASTIRMA.md (10 bolum, mimari kararlar)
+- docs/SCREENSHOTS.md (simulasyon cikti kanitlari)
 
 ## Referanslar
 
