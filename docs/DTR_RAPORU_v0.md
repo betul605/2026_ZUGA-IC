@@ -1,0 +1,680 @@
+# Detayli Tasarim Raporu (DTR)
+
+## TEKNOFEST 2026 Cip Tasarim Yarismasi - Mikrodenetleyici Kategorisi
+
+**Takim:** ZUGA-IC
+**Takim ID:** #989786
+**Basvuru ID:** #5215977
+**Kategori:** Mikrodenetleyici Tasarim (Yongatek)
+
+**Takim Uyeleri:**
+- Umur Bugra Dikmen (Kaptan)
+- Betul Bedir
+
+**Danisman:** Fatih Gul
+
+**Universite:** RTEU Elektrik-Elektronik Muhendisligi
+
+**Teslim Tarihi:** 15 Mayis 2026
+**Rapor Versiyonu:** v0 (sablon)
+**Son Guncelleme:** 27 Nisan 2026
+
+---
+
+## 1. Yonetici Ozeti
+
+[1 SAYFA - DOLDURULACAK - Hafta 3]
+
+Bu raporda ZUGA-IC takiminin TEKNOFEST 2026 Cip Tasarim Yarismasi
+kapsaminda gelistirdigi RISC-V tabanli mikrodenetleyici tasarimi
+detayli olarak sunulmaktadir.
+
+Anahtar metrikler:
+- Cekirdek: CV32E40P (RV32I, FPU=0)
+- 5 RTL modul (RAM, UART, GPIO, Timer, SoC top)
+- 4 self-checking test programi
+- 3 OBI bus protocol assertion
+- 22 git commit
+- DTR donemi sonu: 10 milestone tamamlandi (M01-M10)
+
+---
+
+## 2. ONTR'den Bu Yana Yapilan Degisiklikler
+
+[KAYNAK: M05, M06, M09, M10 - + ONTR ile karsilastirma]
+
+### 2.1 Mimari Degisiklikler
+
+**RTL Dili:** ONTR'de "Verilog" denmisti. DTR donemde SystemVerilog
+2017 sentetik alt kume kullanildi. Sebep: CV32E40P uyumlulugu, tip
+guvenligi (typedef enum, struct), parametreli modul desteği.
+
+**Bus Protokolu:** ONTR'de "AXI4-Lite konfigurasyon icin" denmisti.
+DTR donemde OBI (Open Bus Interface) direkt kullanildi. Sebep:
+CV32E40P core dogrudan OBI uretiyor; AXI4-Lite wrapper sentez
+karmasikligini artiriyor. Final teslim icin AXI4-Lite wrapper
+eklenecek; metodoloji ayni (OBI assertion'lari -> AXI assertion).
+
+**Bellek Haritasi:**
+- ONTR: Boot ROM 0x00000, IRAM 0x10000, DRAM 0x20000
+- DTR: IRAM 0x00000 (8 KB), DRAM 0x00020000 (8 KB)
+- Sebep: Linker script basitligi, mevcut testleri etkilememe
+- Boot ROM final teslim icin eklenecek
+
+### 2.2 Cevre Birim Durumu
+
+| Cevre Birim | ONTR | DTR Donemi | Final Hedefi |
+|-------------|------|------------|--------------|
+| GPIO (32 pin) | Vaat | 16 pin (M03) | 32 pin |
+| Timer | Vaat | Var (M04) | + interrupt |
+| 2x UART | Vaat | UART-0 var (M06+M09) | UART-1 + RX |
+| I2C Master | Vaat | Yok | Eklenecek |
+| QSPI Master | Vaat | Yok | Eklenecek |
+| JTAG | Vaat | Yok | Eklenecek (bonus) |
+| YZ Hizlandirici | Vaat | Plan (M11+) | Tam |
+
+### 2.3 Doğrulama Yaklasimi
+
+ONTR'de "UVM + SystemVerilog" denmisti. DTR donemde:
+- Self-checking test programlari (assembly, 4 adet)
+- OBI protocol assertion'lari (3 kural, bind ile)
+- Verilator ile simulator + SVA destegi sinirli
+- UVM tam yerine pragmatik SVA + behavioral assertion
+
+Final teslim icin tam UVM agent eklenebilir.
+
+---
+
+## 3. Sistem Mimarisi
+
+[KAYNAK: ONTR + tum milestone'lar]
+
+### 3.1 Genel Blok Diyagrami
+
+[DOLDURULACAK - Hafta 2'de cizilecek]
+
+   +---------------+
+   | CV32E40P Core |
+   |  (RV32I)      |
+   +---+-------+---+
+       |       |
+    instr    data
+     OBI     OBI
+       |       |
+   +---v-------v---+
+   |  OBI Decoder  |
+   |  (5 slave)    |
+   +---+---+---+---+---+
+       |   |   |   |   |
+       v   v   v   v   v
+     IRAM DRAM UART GPIO TIMER
+     8KB  8KB  EK-2 16pin
+
+### 3.2 Bellek Haritasi (Final)
+
+| Adres Araligi          | Modul | Boyut | Aciklama         |
+|------------------------|-------|-------|------------------|
+| 0x00000000-0x00001FFF  | IRAM  | 8 KB  | Instruction RAM  |
+| 0x00020000-0x00021FFF  | DRAM  | 8 KB  | Data RAM         |
+| 0x40000000-0x40000FFF  | GPIO  | 4 KB  | 16-bit IO        |
+| 0x40001000-0x40001FFF  | Timer | 4 KB  | CLR/ENA/CNT      |
+| 0x40002000-0x40002013  | UART  | 20 B  | EK-2 yazmaclar   |
+
+### 3.3 Saat ve Reset
+
+[KAYNAK: M10]
+
+- Sistem saati: 50 MHz (ONTR'de vaat edilen)
+- FPGA: 100 MHz osilator -> /2 divider -> 50 MHz
+- Reset: Active-low push button + 2-flop senkronizator + 16-bit debounce
+
+### 3.4 OBI Bus Mimarisi
+
+[KAYNAK: M02, M07]
+
+- Master 1: CV32E40P instruction port (read-only)
+- Master 2: CV32E40P data port (read/write)
+- 5 slave: IRAM, DRAM, GPIO, Timer, UART
+- Decoder: addr[31:28] + addr[17] + addr[13] + addr[12]
+- Select latch pattern: rvalid timing icin
+
+---
+
+## 4. Modul Detaylari
+
+[KAYNAK: M01-M10 dokumanlari]
+
+### 4.1 CV32E40P Cekirdek (M01)
+
+[DOLDURULACAK - kaynak openhwgroup/cv32e40p]
+
+- 32-bit RISC-V (RV32IM_Zicsr)
+- 4 stage in-order pipeline
+- IF / ID / EX / WB
+- FPU = 0 (int8 hedefi)
+- OBI master (instr + data)
+
+Faz 1 entegrasyonu: cv32e40p_core (top degil), APU tie-off,
+fpnew_pkg bagimliligi giderildi.
+
+### 4.2 RAM Modulu (M01, M05)
+
+[KAYNAK: rtl/ram.sv (82 satir)]
+
+- Dual-port (instruction + data)
+- Parametreli: SIZE_WORDS, MEM_FILE
+- 2 instance: IRAM (program) + DRAM (veri)
+- $readmemh ile baslangic yuklemesi
+
+### 4.3 UART Modulu (M06, M09)
+
+[KAYNAK: rtl/uart.sv (195 satir)]
+
+EK-2 yazmac haritasi:
+- 0x00 CPB (clock-per-bit)
+- 0x04 STP (stop bit)
+- 0x08 RDR (RX data, Faz 3)
+- 0x0C TDR (TX data)
+- 0x10 CFG (TX_EN, RX_DONE, TX_DONE)
+
+Faz 2 (M09): 10-bit TX state machine, baud rate generator,
+sentezlenebilir tx_o pin.
+
+### 4.4 GPIO Modulu (M03)
+
+[KAYNAK: rtl/gpio.sv (76 satir)]
+
+- 16-bit input + 16-bit output
+- IDR (input data register)
+- ODR (output data register)
+
+### 4.5 Timer Modulu (M04)
+
+[KAYNAK: rtl/timer.sv (63 satir)]
+
+- 32-bit sayici
+- CLR (clear)
+- ENA (enable)
+- CNT (count, read-only)
+
+### 4.6 SoC Top (M02)
+
+[KAYNAK: rtl/soc_top.sv (281 satir)]
+
+- 5-slave OBI decoder
+- Select latch pattern
+- 6 instance (RAM x2, UART, GPIO, Timer)
+- gpio_in_i, gpio_out_o, uart_tx_o portlari
+
+### 4.7 FPGA Top (M10)
+
+[KAYNAK: rtl/fpga_top.sv (87 satir)]
+
+- 100 MHz -> 50 MHz clock divider
+- Reset senkronizator + debounce
+- Pin yonlendirme (LED, switch, UART)
+
+---
+
+## 5. Tasarim Kararlari ve Rasyonel
+
+[KAYNAK: M01-M10 + ONTR ile karsilastirma]
+
+### 5.1 Cekirdek Sec0imi: CV32E40P
+
+ONTR'de CV32E40P sec0ilmisti. Sebepler:
+- OpenHW Group sertifikali
+- 4-stage in-order pipeline (basit ama yeterli)
+- OBI master (sentez-uyumlu bus)
+- Iyi belgelenmis, GitHub aktif
+- RV32IM_Zicsr destegi
+
+cv32e40p_top yerine cv32e40p_core kullanildi. Sebep: top'un FPU
+wrapper bagimliligi (fpnew_pkg) ek karmaşıklık yaratıyor; biz
+FPU=0 hedefliyoruz.
+
+### 5.2 RTL Dili: SystemVerilog 2017
+
+ONTR'de "Verilog" denmisti. SystemVerilog'a gec0is sebepleri:
+- typedef enum: state machine'ler icin tip guvenligi
+- struct: opsiyonel, sentez-uyumlu
+- always_ff vs. always_comb: sentaks netligi
+- Parametreli modul: code reuse (RAM modulu IRAM+DRAM olarak iki
+  instance'a aciliyor)
+- bind: RTL'i degistirmeden assertion ekleme (M07)
+
+CV32E40P kendisi SystemVerilog yazilmis. Tutarlilik icin biz de
+SV kullandik.
+
+### 5.3 Bus Protokolu: OBI
+
+ONTR'de "AXI4-Lite" denmisti. OBI'a gec0is sebepleri:
+- CV32E40P core dogrudan OBI uretiyor
+- AXI4-Lite wrapper yazmak ek 200-300 satir ek RTL
+- AXI4-Lite cevaplama mantigi daha karmasik (AWVALID/AWREADY/
+  WVALID/WREADY/BVALID/BREADY/ARVALID/ARREADY/RVALID/RREADY)
+- OBI: req/gnt/rvalid -- daha basit
+- Sentez ve simulator daha hizli
+
+DTR icin OBI yeterli kanit; final teslimde AXI4-Lite wrapper
+eklenecek (metodoloji ayni: assertion'lar, decoder, vs.)
+
+### 5.4 OBI Bus Select Latch (M02)
+
+[KAYNAK: M02 dokumanı]
+
+Bug: rvalid sinyali multi-cycle gec0ikme oldugunda decoder mux'i
+yanlis slave'in rdata'sini sec0ebiliyor. Cozum: select sinyallerini
+flip-flop ile latch et (sel_x_q). Bu OBI'ya ozgu bir tasarim
+ozelligi -- AXI'de AWID/ARID ile ayni sorun cozuluyor.
+
+### 5.5 Bellek Haritasi
+
+ONTR'de Boot ROM 0x00000, IRAM 0x10000 idi. DTR'de IRAM 0x00000
+yapildi. Sebepler:
+- Linker script default 0x00 baslatma noktasi
+- Tum hex dosyalari 0x00'da basliyor (gcc -Ttext=0x00)
+- Boot ROM eklemek tum testleri yeniden derleme gerektirirdi
+- Faz 2'de (final teslim) Boot ROM 0x00, IRAM 0x10000 yapilabilir
+
+### 5.6 UART Iki-Fazli Gelisim (M06, M09)
+
+[KAYNAK: M06 + M09]
+
+Faz 1 (M06): EK-2 yazmac haritasi, $write debug
+Faz 2 (M09): Gerc0ek 10-bit TX state machine, baud rate generator,
+tx_o pin
+
+Sebep: Davranissal model once kuruldu, regression-safe gec0is icin
+sonra hardware behavior eklendi. Bu yaklasim DTR'de "incremental
+development" olarak anlatiliyor.
+
+### 5.7 SVA vs UVM
+
+ONTR'de "UVM + SystemVerilog" denmisti. M07'de SVA tabanli
+protocol check sec0ildi. Sebepler:
+- Verilator UVM destegi sinirli
+- Tam UVM agent 3-4 saatlik is, oğrenme egrisi dik
+- SVA assertion 1-2 saatlik, Verilator destekli
+- DTR icin yeterli kanit; final teslim icin UVM eklenebilir
+
+Pratik kisitlamalar (M07):
+- Verilator ##N cycle delay desteklemiyor
+- "always_ff + assert(condition)" yontemine gec0ildi
+- 3 OBI kurali kontrol ediliyor (gnt/rvalid/handshake)
+
+---
+
+## 6. Doğrulama Metodolojisi
+
+[KAYNAK: M07, M08]
+
+### 6.1 Yaklasim
+
+3 katmanli doğrulama:
+
+1. **Self-checking test programlari** (assembly): Her modulu kendi
+   senaryosunda test eder, PASS/FAIL c0ikti uretir.
+
+2. **OBI protocol assertion'lari** (M07): bind ile testbench'ten
+   bus kurallari kontrol edilir; her cycle aktif.
+
+3. **Coverage sayaclari** (M08): DATA + INSTR bus aktivitesi
+   sayilir, DTR raporuna metrik olarak girer.
+
+### 6.2 Test Programlari
+
+| Test       | Modul Kapsami | Self-Check | DATA islemleri |
+|------------|---------------|------------|----------------|
+| hello.S    | UART          | UART output | 3 yazma |
+| test_gpio.S| GPIO + UART   | beq ile    | 5 islem |
+| test_timer.S| Timer + UART | beq ile    | 5 islem |
+| test_full.S| 3 modul + 5 yazmac | beq + bne | 17 islem |
+
+### 6.3 Protocol Check (M07)
+
+- 3 SVA-benzeri kural (Verilator-uyumlu always_ff)
+- 2 instance: DATA bus + INSTR bus
+- bind ile RTL'den bagimsiz
+- 0 ASSERT FAIL (tum testlerde)
+
+### 6.4 Coverage (M08)
+
+Karsilastirma tablosu:
+
+| Test       | DATA Read | DATA Write | INSTR Fetch |
+|------------|-----------|------------|-------------|
+| hello      | 0         | 3          | ~10         |
+| test_gpio  | 1         | 4          | ~30         |
+| test_timer | 1         | 4          | ~50         |
+| test_full  | 4         | 13         | 999         |
+
+Maximum coverage: test_full.S (3.4x daha cok DATA aktivitesi)
+
+---
+
+## 7. Doğrulama Sonuclari
+
+[KAYNAK: M01-M10 simulasyon ciktilari]
+
+### 7.1 Test Sonuclari
+
+Tum 4 self-checking test PASS:
+- hello: "Hi\\n" basildi
+- test_gpio: "P\\n" basildi (beq gec0ti)
+- test_timer: "T\\n" basildi (beq gec0ti)
+- test_full: "RUN\\nPASS\\n" basildi (tum kontroller gec0ti)
+
+### 7.2 Protocol Check Sonuclari
+
+[KAYNAK: M07 simulasyon ciktilari]
+
+Simulator c0iktisi:
+   [DATA COVERAGE] Toplam okuma: 4, yazma: 13, toplam: 17
+   [INSTR COVERAGE] Toplam okuma: 999, yazma: 0, toplam: 999
+
+ASSERT FAIL sayisi: 0
+Yorum: OBI bus protocolu tamamen dogru (3 kural, 2 instance,
+1000 cycle simulasyon).
+
+### 7.3 UART Faz 2 Waveform Dogrulamasi
+
+[KAYNAK: M09]
+
+'R' (0x52) gonderiminde tx_o pini gozlemlendi:
+   start (1->0) -> 8 data bits (LSB first) -> stop (0->1)
+
+Tam 8 bit gec0is + 1 stop gec0is = 9 edge gozlendi. Cycle araligi
+CPB=16 ile uyumlu (16 cycle/bit). UART standardina uygun.
+
+---
+
+## 8. Karsilasilan Zorluklar ve Cozumler
+
+[KAYNAK: tum milestone dokumanlari]
+
+### 8.1 CV32E40P Entegrasyonu (M01)
+
+**Sorun:** cv32e40p_top fpnew_pkg gerektiriyor, FPU wrapper var
+**Cozum:** cv32e40p_core dogrudan kullanildi, APU tie-off
+
+**Sorun:** Compressed instruction (rv32ic) decode hatasi
+**Cozum:** -march=rv32i ile compressed disable
+
+**Sorun:** OBI instruction rdata 1 cycle gec0ikiyor
+**Cozum:** instr_addr_q flip-flop eklendi
+
+### 8.2 OBI Bus Select Latch (M02)
+
+[KAYNAK: M02]
+
+**Sorun:** rvalid 1 cycle sonra geliyor; decoder mux yanlis
+slave'in rdata'sini se ciyor
+**Cozum:** sel_x_q flip-flop'lar -- bus select latch pattern
+
+### 8.3 Verilator SVA Kisitlamalari (M07)
+
+**Sorun 1:** ##N cycle delay range desteklenmiyor
+**Cozum:** Sabit ##0 / ##1'a gec0is
+
+**Sorun 2:** Sabit ##N de desteklenmiyor (sequence expression'da)
+**Cozum:** SVA'dan vazgec0i, always_ff + $display
+
+**Sorun 3:** Yorumda "verilator" kelimesi pragma sandiriyor
+**Cozum:** "Bu simulator" olarak yeniden yazildi
+
+**Sorun 4:** bus_name string port desteği sinirli
+**Cozum:** parameter string BUS_NAME ile yeniden yapildi
+
+### 8.4 UART Faz 1 -> Faz 2 Gec0is (M09)
+
+**Sorun:** Faz 1'de $write simulator-only, FPGA'da calismaz
+**Cozum:** Faz 2 -- 10-bit TX state machine + baud generator
+
+**Sorun:** $write tamamen kaldirilirsa simulator debug zor
+**Cozum:** synthesis translate_off / translate_on direktifleri
+
+### 8.5 Build ve Geri Uyumluluk
+
+**Sorun:** Yeni UART eklendiginde mevcut testler kirilir mi?
+**Cozum:** CFG[0] (TX_EN) reset = 1 default, mevcut testler CFG'ye
+yazmadan calisir.
+
+**Sorun:** test_full.S yeni adres + offset, eski test'lerle catismak
+**Cozum:** Tum 3 test programi yeniden derlendi (lui + sw offset)
+
+---
+
+## 9. FPGA Hazirligi
+
+[KAYNAK: M09 + M10]
+
+### 9.1 Sentezlenebilir RTL
+
+[KAYNAK: M09]
+
+UART Faz 2'de gerc0ek 10-bit TX state machine + baud rate generator
+eklendi. tx_o pin output. $write debug "synthesis translate_off"
+direktifleri ile sentez disinda tutuldu. Sonuc: Vivado/Yosys
+sentez aracları RTL'i sorunsuz isleyebilir.
+
+### 9.2 Top-Level Wrapper (M10)
+
+[KAYNAK: M10]
+
+rtl/fpga_top.sv (87 satir):
+- 100 MHz sysclk -> 50 MHz cekirdek saati (/2 divider)
+- Reset 2-flop senkronizator + 16-bit debounce (~1.3 ms)
+- 4 LED + 4 switch -> SoC GPIO (16-bit)
+- UART tx_o -> USB-UART kopru pin
+- soc_top instantiation
+
+### 9.3 Pin Atamalari
+
+[KAYNAK: constraints/arty_a7.xdc]
+
+12 pin atama:
+- sysclk: E3 (100 MHz)
+- cpu_resetn: D9 (reset push button)
+- uart_tx: D10 (USB-UART kopru)
+- led[3:0]: H5, J5, T9, T10
+- sw[3:0]: A8, C11, C10, A10
+
+Clock constraint: 10 ns periyot, LVCMOS33 IO standard, 3.3V CFGBVS.
+
+### 9.4 Sentez Akisi
+
+Hafta sonu (3-4 May) Umur Bugra ile yapilacak:
+1. Vivado 2023.x ac
+2. RTL Project olustur, Part: xc7a100tcsg324-1
+3. Tum RTL dosyalari ekle (cv32e40p_*.sv + bizim 6 dosya)
+4. fpga_top.sv'yi TOP olarak isaretle
+5. arty_a7.xdc constraints olarak ekle
+6. Run Synthesis
+7. Sentez raporu (kaynak kullanim, kritik yol) DTR'ye eklenir
+
+Hedef: "Sentez basarili" gormek. Bitstream ve gerc0ek demo final
+teslim icin (Agustos 2026).
+
+---
+
+## 10. Sartname Odul Kriterleri Durumu
+
+[KAYNAK: Sartname Madde 4.2.2.2]
+
+Sartnamede bes minimum odul kriteri tanimli:
+
+| # | Kriter | DTR Durumu | Final Hedefi |
+|---|--------|------------|--------------|
+| 1 | FPGA + 2 cevre birim | RTL hazir, sentez ediliyor | Bitstream + demo |
+| 2 | Self-checking test | VAR (4 test, M03/M04/M06/M08) | Daha kapsamli |
+| 3 | AXI/Protocol Check | VAR (M07, OBI varyanti) | AXI4-Lite + UVM |
+| 4 | YZ test | Plan (M11+) | Tam YZ hizlandirici |
+| 5 | GDSII | Yok | Sky130 ile |
+
+DTR donemi sonu: 3/5 kriter tamamen veya kismen karsilanmis.
+
+### 10.1 Kriter #2 Detayi
+
+4 self-checking test:
+- hello.S: UART smoke
+- test_gpio.S: GPIO write+read+kontrol -> 'P'
+- test_timer.S: Timer CLR+ENA+CNT+kontrol -> 'T'
+- test_full.S: 3 modul + 5 yazmac + conditional flow -> 'PASS'
+
+### 10.2 Kriter #3 Detayi
+
+bind ile testbench'ten OBI bus'a 3 protocol kurali baglandi:
+- gnt sadece req aktifken cikar
+- rvalid handshake'siz cikamaz
+- handshake sonrasi 1 cycle icinde rvalid
+
+DATA + INSTR bus icin ayri instance, 1000 cycle simulasyon, 0
+ASSERT FAIL.
+
+### 10.3 Kriter #1 ve #4 Plan
+
+#1 (FPGA): M09 + M10 ile zemin atildi. Hafta sonu sentez denemesi.
+DTR'de "akis kuruldu" deme yetkisi var. Final teslim icin gerc0ek
+demo (PuTTY ile UART okuma).
+
+#4 (YZ): ONTR'de Tiny Conv hedefi. RTL iskelet hafta 2'de
+yazilabilir (M11). MAC + FSM + CSR + 1 test. Final teslim icin
+tam Conv1D + Depthwise + FC katmanlari.
+
+---
+
+## 11. Takvim ve Kalan Is
+
+### 11.1 Tamamlanan Donem (16 Mart - 27 Nisan 2026)
+
+| Tarih   | Milestone | Aciklama |
+|---------|-----------|----------|
+| 16 Mart | ONTR teslim | Ontasarim Raporu |
+| 22 Nis  | M01 | CV32E40P "Hi" |
+| 23 Nis  | M02 | Modular SoC + OBI |
+| 23 Nis  | M03 | GPIO + 'P' |
+| 23 Nis  | M04 | Timer + 'T' |
+| 26 Nis  | M05 | IRAM/DRAM ayrimi |
+| 26 Nis  | M06 | EK-2 uyumlu UART (Faz 1) |
+| 26 Nis  | M07 | SVA Protocol Check |
+| 27 Nis  | M08 | Comprehensive test |
+| 27 Nis  | M09 | UART Faz 2 (gerc0ek HW) |
+| 27 Nis  | M10 | FPGA Top-Level Wrapper |
+
+### 11.2 Kalan Is (28 Nisan - 15 Mayis 2026)
+
+**Hafta 1 sonu (28 Nis - 1 May):**
+- DTR sablon hazirligi (M11 - bu doküman)
+- Memory map ONTR-aynisi (opsiyonel)
+- I2C Master iskelet (opsiyonel)
+
+**Hafta sonu (3-4 May):**
+- Umur Bugra ile FPGA Vivado sentez denemesi
+- Sentez raporu DTR'ye eklenir
+
+**Hafta 2 (5-8 May):**
+- YZ MAC iskelet (M12, opsiyonel)
+- Mimari diyagrami cizimi
+- DTR rapor icerigi doldurma
+
+**Hafta 3 (9-15 May):**
+- DTR rapor son hali
+- Ekran goruntuleri
+- Final commit + push
+- 15 May 17:00 teslim
+
+### 11.3 Kalan Olcumler
+
+- DTR rapor doldurma sayfa sayisi: ~30-40 (sablon + icerik)
+- Mevcut milestone dokumanlari: 9 dosya, ~2000 satir
+- Mevcut ekran goruntuleri: 0 (hafta 2'de cekilecek)
+- Mevcut diyagrami: 0 (hafta 2'de cekilecek)
+
+---
+
+## 12. Risk Analizi
+
+### 12.1 DTR Donemi Riskleri
+
+**Risk 1: Vivado sentez basarisiz olabilir**
+- Olasilik: Orta
+- Etki: Yuksek (DTR'de "FPGA hazirligi" zayiflar)
+- Azaltma: Hafta sonu 1-1.5 saatlik deneme; basarisizsa sebebini
+  belirleyip duzelt
+
+**Risk 2: YZ MAC iskelet zaman almaz**
+- Olasilik: Dusuk
+- Etki: Orta (Kriter #4 zemin yok)
+- Azaltma: Opsiyonel; DTR'de "plan" olarak goster
+
+**Risk 3: DTR rapor yazimi son haftaya birikir**
+- Olasilik: Dusuk (sablon hazir, milestone dokumanlari hazir)
+- Etki: Yuksek
+- Azaltma: Bu sablon (M11) erken hazirlandi
+
+### 12.2 Final Teslim Donemi Riskleri (Bilgi Amacli)
+
+- AXI4-Lite wrapper: 200-300 satir ek RTL, 1 hafta
+- UVM agent: 3-4 saatlik ogrenme egrisi + implementasyon
+- YZ tam Conv: 15-20 saatlik is
+- GDSII (Sky130): Tam yeni akis, takim bilgi gerektirir
+
+---
+
+## 13. Sonuc
+
+[DOLDURULACAK - Hafta 3]
+
+ZUGA-IC takimi DTR donemi (16 Mart - 15 May) icinde:
+- 10 milestone tamamladi (M01-M10)
+- 22 git commit, GitHub'da senkron
+- Sartnameden 3/5 minimum odul kriteri DTR icin karsilanmaya baslandi
+- ONTR'deki vaadlerin onemli kismi gerc0eklestirildi
+- ONTR'den DTR'ye yapilan degisiklikler savunulabilir gerekc0elerle
+  belgelendi
+
+Sistem mimarisi:
+- CV32E40P (RV32I) RISC-V cekirdegi
+- 5 cevre birim modul (RAM x2, UART, GPIO, Timer)
+- 5-slave OBI decoder
+- 4 self-checking test
+- 3 OBI protocol assertion
+- FPGA sentez hazir (Arty A7-100T)
+
+Final teslim donemi (May - Agustos 2026):
+- AXI4-Lite wrapper
+- UVM agent (full)
+- YZ hizlandirici (Tiny Conv)
+- I2C, QSPI, JTAG cevre birimleri
+- GDSII (Sky130)
+- FPGA tam demo (PuTTY UART)
+
+---
+
+## EKLER
+
+### Ek A: GitHub Repository
+github.com/betul605/ZUGA-IC
+
+### Ek B: Milestone Dokumanlari (docs/ klasoru)
+- milestone_01_hello.md
+- milestone_02_modular_soc.md
+- milestone_03_gpio.md
+- milestone_04_timer.md
+- milestone_05_iram_dram.md
+- milestone_06_uart_ek2.md
+- milestone_07_sva_protocol_check.md
+- milestone_08_comprehensive_test.md
+- milestone_09_uart_faz2.md
+- milestone_10_fpga_top.md
+
+### Ek C: Bu Sablon
+DTR_RAPORU_v0.md (bu dosya)
+
+### Ek D: Build Komutu
+   ./build.sh && ./obj_dir/sim_cv32
+
+### Ek E: Test Programlari (sw/ klasoru)
+- hello.S, test_gpio.S, test_timer.S, test_full.S
+
