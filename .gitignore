@@ -1,5 +1,5 @@
 # Verilator build çıktıları
-obj_dir/
+obj_dir*/
 *.o
 *.d
 
