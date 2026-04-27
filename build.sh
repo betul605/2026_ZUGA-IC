@@ -8,7 +8,7 @@ set -e  # Hata varsa dur
 cd ~/cv32_sim
 
 # Program dosyasını çalışma dizinine kopyala (Verilator $readmemh için)
-cp sw/test_timer.hex ./hello.hex
+cp sw/test_full.hex ./hello.hex
 
 # Önceki build'i temizle
 rm -rf obj_dir
