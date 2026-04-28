@@ -23,19 +23,82 @@
 
 ## 1. Yonetici Ozeti
 
-[1 SAYFA - DOLDURULACAK - Hafta 3]
+ZUGA-IC takimi, TEKNOFEST 2026 Cip Tasarim Yarismasi (Mikrodenetleyici
+Kategorisi) kapsaminda OpenHW Group'un CV32E40P RISC-V cekirdegi
+etrafinda kurulmus modular bir System-on-Chip (SoC) gelistirmistir.
+Tasarim, Recep Tayyip Erdogan Universitesi (RTEU) Elektrik-Elektronik
+Muhendisligi 3. sinif ogrencileri Umur Bugra Dikmen ve Betul Bedir
+tarafindan, Dr. Fatih Gul danismanliginda yurutulmustur.
 
-Bu raporda ZUGA-IC takiminin TEKNOFEST 2026 Cip Tasarim Yarismasi
-kapsaminda gelistirdigi RISC-V tabanli mikrodenetleyici tasarimi
-detayli olarak sunulmaktadir.
+### Sistem Genel Yapisi
 
-Anahtar metrikler:
-- Cekirdek: CV32E40P (RV32I, FPU=0)
-- 5 RTL modul (RAM, UART, GPIO, Timer, SoC top)
-- 4 self-checking test programi
-- 3 OBI bus protocol assertion
-- 22 git commit
-- DTR donemi sonu: 10 milestone tamamlandi (M01-M10)
+Tasarim su bilesenleri icerir:
+
+- **Cekirdek:** CV32E40P (RV32IM_Zicsr, 4-stage in-order pipeline,
+  FPU=0). cv32e40p_core dogrudan kullanilmistir.
+- **Bus protokolu:** OBI (Open Bus Interface), iki master (instruction
+  + data), 6 slave (IRAM, DRAM, GPIO, Timer, UART, I2C Master).
+- **Bellek:** 8 KB IRAM (program kodu) + 8 KB DRAM (veri).
+- **Cevre birimler:** 4 sentezlenebilir modul -- 16-bit GPIO,
+  32-bit Timer, EK-2 uyumlu UART (TX state machine + baud generator),
+  OpenCores tarzi I2C Master (6 yazmac, 5-state machine).
+- **FPGA hedefi:** Xilinx Artix-7 XC7A100TCSG324-1 (Digilent Arty
+  A7-100T), 50 MHz cekirdek saati, 14 pin atamasi.
+
+### Sayisal Metrikler (DTR Donemi Sonu)
+
+| Metrik              | Deger                                |
+|---------------------|--------------------------------------|
+| Git commit          | 28 (1 ay icinde, 16 Mart - 28 Nis)  |
+| Milestone           | 15 (M01 - M15)                       |
+| RTL modul           | 7 (ram, uart, gpio, timer, i2c,      |
+|                     |    soc_top, fpga_top)                |
+| Self-checking test  | 4 (hello, gpio, timer, full+I2C)     |
+| OBI assertion       | 3 (gnt-req, handshake-rvalid,        |
+|                     |    rvalid-only)                      |
+| DATA bus coverage   | 21 islem (4 read + 17 write)         |
+| INSTR bus coverage  | 999 fetch                            |
+| ASSERT FAIL         | 0 (1000 cycle simulasyon)            |
+| Toplam dokumantasyon| ~3500 satir (15 .md dosyasi)         |
+
+### Sartname Odul Kriteri Durumu
+
+Sartname Madde 4.2.2.2 minimum 5 odul kriterinden DTR donemi sonu
+durumu:
+
+| # | Kriter                          | DTR Durumu                |
+|---|---------------------------------|---------------------------|
+| 1 | FPGA + 2 cevre birim            | RTL hazir, sentez 3-4 May |
+| 2 | Self-checking test              | KARSILANDI (4 test)       |
+| 3 | AXI/Protocol Check              | KARSILANDI (OBI varyanti) |
+| 4 | YZ test                         | Plan (final teslim)       |
+| 5 | GDSII                           | Final teslim              |
+
+DTR donemi 3/5 kriter karsilanmis, kalan 2 kriter (#4 ve #5) final
+teslim donemi (Mayis-Agustos 2026) icin planlanmistir.
+
+### ONTR'den DTR'ye Yapilan Akilli Tercihler
+
+- Bus protokolu: AXI4-Lite -> OBI direkt (CV32E40P uyumu, sentez
+  basitligi). AXI4-Lite wrapper final teslim icin.
+- RTL dili: Verilog -> SystemVerilog 2017 (tip guvenligi, parametre).
+- Doğrulama: tam UVM -> SVA + always_ff (Verilator-uyumlu, pragmatik).
+- Bellek haritasi: Boot ROM 0x00 -> IRAM 0x00 (linker basitligi,
+  regression riskini onleme).
+- Cevre birimler: Tum liste -> 4 modul (GPIO, Timer, UART, I2C).
+  Sartname kriteri 2 cevre birim, biz 2 katini saglddik.
+
+Bu tercihlerin **hepsinin teknik gerekc0esi vardir** ve final teslim
+icin tamamlanma plani mevcuttur (Bolum 2 ve Ek dokumanlarda detayli).
+
+### Anahtar Basari
+
+Tasarimin en kritik dogrulamasi: 1000 cycle simulasyon boyunca **0
+ASSERT FAIL** ile 4 self-checking testi gec0en, 6 slave OBI bus'a
+3 protocol kuralini uygulayan, sentezlenebilir RTL elde edildi.
+Kaynak kod GitHub'da herkese acik (github.com/betul605/ZUGA-IC),
+15 detayli milestone dokumani ile her gelisim adimi kayit altina
+alinmistir.
 
 ---
 
@@ -91,24 +154,54 @@ Final teslim icin tam UVM agent eklenebilir.
 
 ### 3.1 Genel Blok Diyagrami
 
-[DOLDURULACAK - Hafta 2'de cizilecek]
+ZUGA-IC SoC mimarisi asagidaki bloklarin OBI bus uzerinden iletisimi
+ile olusur. CV32E40P cekirdegi iki master port (instruction + data)
+ile sistemi yonetir; bu portlar OBI Decoder uzerinden 6 slave'e
+yonlendirilir.
 
-   +---------------+
-   | CV32E40P Core |
-   |  (RV32I)      |
-   +---+-------+---+
-       |       |
-    instr    data
-     OBI     OBI
-       |       |
-   +---v-------v---+
-   |  OBI Decoder  |
-   |  (5 slave)    |
-   +---+---+---+---+---+
-       |   |   |   |   |
-       v   v   v   v   v
-     IRAM DRAM UART GPIO TIMER
-     8KB  8KB  EK-2 16pin
+**Detayli gorsel diyagram:** Ek D (docs/MIMARI_DIYAGRAM.md, Diyagram 1)
+GitHub'da Mermaid syntax ile otomatik render edilir.
+
+ASCII gorunumu (kompakt):
+
+```
+                          +------------------------+
+                          |     CV32E40P Core      |
+                          |  (RV32IM_Zicsr, FPU=0) |
+                          |  4-stage pipeline      |
+                          +-----+--------------+---+
+                                |              |
+                          instr OBI        data OBI
+                                |              |
+                          +-----v--------------v-----+
+                          |    6-Slave OBI Decoder   |
+                          |   addr[31:28]==4'h4 ?    |
+                          |   addr[14], [13], [12]   |
+                          |   + Select Latch         |
+                          +--+--+--+--+--+-----+-----+
+                             |  |  |  |  |     |
+                             v  v  v  v  v     v
+                          IRAM DRAM GPIO TIM UART I2C
+                          8KB  8KB  16p  32b  EK-2 6r
+                          0x000 0x020 0x4000 0x4001 0x4002 0x4004
+```
+
+Adres haritasi (ozet):
+
+| Bolge      | Adres Araligi           | Modul     | Boyut  |
+|------------|-------------------------|-----------|--------|
+| IRAM       | 0x00000000-0x00001FFF   | Program   | 8 KB   |
+| DRAM       | 0x00020000-0x00021FFF   | Veri      | 8 KB   |
+| GPIO       | 0x40000000-0x40000FFF   | 16-bit IO | 4 KB   |
+| Timer      | 0x40001000-0x40001FFF   | 32-bit    | 4 KB   |
+| UART       | 0x40002000-0x40002013   | EK-2      | 20 B   |
+| I2C Master | 0x40004000-0x40004017   | OpenCores | 24 B   |
+
+Adres dekod mantigi soyledir: data_addr[31:28] == 4'h4 ise cevre
+birim bolgesi; addr[14] == 1 ise I2C, degilse addr[13] ve addr[12]
+ile GPIO/Timer/UART arasinda secim. addr[31:28] == 4'h0 ise IRAM
+veya DRAM (addr[17] biti ile ayrilir).
+
 
 ### 3.2 Bellek Haritasi (Final)
 
@@ -146,7 +239,13 @@ Final teslim icin tam UVM agent eklenebilir.
 
 ### 4.1 CV32E40P Cekirdek (M01)
 
-[DOLDURULACAK - kaynak openhwgroup/cv32e40p]
+CV32E40P, OpenHW Group tarafindan gelistirilen 32-bit RISC-V cekirdegi-
+dir (kaynak: github.com/openhwgroup/cv32e40p). Tasarimimizda
+cv32e40p_top yerine cv32e40p_core dogrudan kullanilmistir; sebep,
+top-level'in fpnew_pkg (FPU wrapper) bagimliligi getirmesi ve bizim
+hedefimizin FPU=0 olmasi.
+
+**Pipeline ve Komut Seti:**
 
 - 32-bit RISC-V (RV32IM_Zicsr)
 - 4 stage in-order pipeline
@@ -624,31 +723,107 @@ tam Conv1D + Depthwise + FC katmanlari.
 
 ## 13. Sonuc
 
-[DOLDURULACAK - Hafta 3]
+ZUGA-IC takimi, TEKNOFEST 2026 Cip Tasarim Yarismasi (Mikrodenetleyici
+Kategorisi) DTR donemi (16 Mart - 15 May 2026) icerisinde, sinirli
+kaynaklar ve 6 haftalik takvimle isleyebilen bir RISC-V tabanli
+mikrodenetleyici tasarimini bastan sona gerc0eklestirmistir.
 
-ZUGA-IC takimi DTR donemi (16 Mart - 15 May) icinde:
-- 10 milestone tamamladi (M01-M10)
-- 22 git commit, GitHub'da senkron
-- Sartnameden 3/5 minimum odul kriteri DTR icin karsilanmaya baslandi
-- ONTR'deki vaadlerin onemli kismi gerc0eklestirildi
-- ONTR'den DTR'ye yapilan degisiklikler savunulabilir gerekc0elerle
-  belgelendi
+### DTR Donemi Basarilari
 
-Sistem mimarisi:
-- CV32E40P (RV32I) RISC-V cekirdegi
-- 5 cevre birim modul (RAM x2, UART, GPIO, Timer)
-- 5-slave OBI decoder
-- 4 self-checking test
-- 3 OBI protocol assertion
-- FPGA sentez hazir (Arty A7-100T)
+**RTL Gelisim:**
+- 15 milestone tamamlandi (M01-M15), her biri belirli bir teknik
+  hedefe odakli ve kendi dokumanina sahip.
+- 7 RTL modul yazildi (~1500 satir SystemVerilog 2017): ram, uart,
+  gpio, timer, i2c_master, soc_top, fpga_top.
+- 28 git commit GitHub'a (github.com/betul605/ZUGA-IC) atildi, her
+  milestone ayri commit ile kayit altina alindi.
 
-Final teslim donemi (May - Agustos 2026):
-- AXI4-Lite wrapper
-- UVM agent (full)
-- YZ hizlandirici (Tiny Conv)
-- I2C, QSPI, JTAG cevre birimleri
-- GDSII (Sky130)
-- FPGA tam demo (PuTTY UART)
+**Doğrulama:**
+- 4 self-checking test programi (hello.S, test_gpio.S, test_timer.S,
+  test_full.S+I2C) RV32I assembly ile yazildi.
+- 3 OBI protocol assertion (M07) bind ile testbench'e baglandi.
+- 1000 cycle simulasyon boyunca **0 ASSERT FAIL**.
+- DATA bus coverage 21 islem (M08'de 17, M15'te 4 yeni I2C eklendi),
+  INSTR bus coverage 999 fetch.
+
+**FPGA Hazirligi:**
+- rtl/fpga_top.sv yazildi (87 satir, Arty A7-100T wrapper).
+- constraints/arty_a7.xdc 14 pin atamasi (clock, reset, UART, 4 LED,
+  4 switch, I2C SCL/SDA).
+- README'de Vivado proje olusturma talimatlari (6 adim).
+- Hafta sonu fiziksel sentez denenmesi planlanmistir.
+
+**DTR Hazirligi:**
+- DTR Raporu sablonu (bu doküman, 13 bolum) hafta 1'de hazirlandi.
+- 3 Mermaid mimari diyagrami (sistem, OBI bus, UART state machine).
+- ONTR-DTR karsilastirma tablosu (10 bolum, 331 satir).
+- Simulasyon cikti kanitlari (205 satir, hafta 3'te ekran goruntusu).
+- Toplam dokumantasyon ~3500 satir, 15 .md dosyasi.
+
+### Sartname Kriterleri Karsilanma Durumu
+
+5 minimum odul kriterinden:
+- KARSILANDI #2 (Self-checking test): 4 test programi, derinlemesine
+- KARSILANDI #3 (Protocol Check): 3 OBI assertion (M07), 0 FAIL
+- KISMI #1 (FPGA + 2 cevre birim): RTL hazir, 4 cevre birim (2 katı),
+  Vivado sentez 3-4 May
+- PLAN #4 (YZ test): Tiny Conv MAC iskelet final teslim icin
+- PLAN #5 (GDSII): Sky130 ile final teslim icin
+
+### ONTR'den DTR'ye Yapilan Akilli Tercihler
+
+ONTR'de (16 Mart 2026) verilen vaadler ile DTR donemi
+gerc0eklestirilenleri arasindaki onemli farklar (detayli karsilastirma:
+Ek B - OTR_DTR_KARSILASTIRMA.md):
+
+- **AXI4-Lite -> OBI direkt:** CV32E40P core dogrudan OBI uretiyor;
+  AXI4-Lite wrapper sentez karmasikligi getiriyor. Final teslim icin
+  AXI4-Lite wrapper eklenecek; mevcut OBI assertion metodolojisi
+  ayni sekilde kullanilabilir.
+- **Verilog -> SystemVerilog 2017:** typedef enum (state machine'ler),
+  parameter, bind (M07 assertion). Tip guvenligi ve CV32E40P uyumu.
+- **Tam UVM -> SVA + always_ff:** Verilator UVM destegi sinirli;
+  pragmatik assertion yontemi ile ayni kanit elde edildi.
+- **8 cevre birim plani -> 4 modul (2 katı kriter karsilanmis):**
+  GPIO, Timer, UART (Faz 2 sentezlenebilir), I2C (iki fazli geli sim).
+- **Boot ROM 0x00 + IRAM 0x10000 -> IRAM 0x00:** Linker basitligi
+  ve regression riskini onleme. Final teslim icin Boot ROM yapilacak.
+
+Bu tercihlerin **hepsinin teknik gerekc0esi vardir** ve final teslim
+icin tamamlanma plani mevcuttur.
+
+### Final Teslim Donemi Plani (May - Agustos 2026)
+
+- **AXI4-Lite wrapper:** OBI uzerine, mevcut decoder ile uyumlu
+- **UVM agent:** Tam class-based, sequence-driven test framework
+- **YZ Hizlandirici (Tiny Conv):** MAC + FSM + CSR + 30 KB SRAM
+  ping-pong, int8 quantization, %10 dogruluk, >5x CPU hizlanma
+- **Cevre birim genisletme:** UART-1 (YZ veri), QSPI Master, JTAG
+- **Boot ROM:** 256 byte, 0x00 adresinde, 'JAL IRAM_START'
+- **GDSII:** Sky130 standart hucre kutuphanesi ile, OpenLane akisi
+- **FPGA tam demo:** PuTTY ile UART RX/TX, LED + switch interaktif
+
+### Takim ve Tesekkurler
+
+ZUGA-IC takimi RTEU EEM 3. sinif ogrencileri Umur Bugra Dikmen
+(kaptan) ve Betul Bedir tarafindan kurulmus, Dr. Fatih Gul
+danismanliginda yurutulmustur. Ilk RTL projesi olmasina ragmen,
+6 haftada modular bir SoC gelistirmek mumkun olmustur.
+
+Tesekkurler: TUBITAK ve TEKNOFEST organizasyonuna firsat saglandigi
+icin; OpenHW Group'a CV32E40P core'un acik kaynak olarak sunulmasi
+icin; pulp-platform takimina OBI standardi icin; Verilator gelistiri-
+cilerine hizli ve ucretsiz simulator icin.
+
+### Kapanis
+
+Bu rapor, ZUGA-IC takiminin DTR donemi calismalarinin teknik
+ozetidir. Detayli simulasyon ciktilari Ek C (SCREENSHOTS.md), mimari
+diyagramlar Ek D (MIMARI_DIYAGRAM.md), milestone-bazinda gelisim
+notlari Ek E (docs/milestone_XX.md) bolumlerinde sunulmaktadir.
+
+Final teslim raporunda (Agustos 2026) GDSII, YZ hizlandirici,
+FPGA tam demo ve UVM agent eklenmis olarak sunulacaktir.
 
 ---
 
