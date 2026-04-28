@@ -14,7 +14,13 @@ module soc_top (
     output logic [15:0] gpio_out_o,
 
     // UART serial output (FPGA pin)
-    output logic        uart_tx_o
+    output logic        uart_tx_o,
+
+    // I2C Master pinleri (open-drain, FPGA pin'lerine baglanir)
+    output logic        i2c_scl_o,
+    output logic        i2c_scl_oe,
+    output logic        i2c_sda_o,
+    output logic        i2c_sda_oe
 );
 
     // ----- Çekirdek OBI instruction port -----
@@ -102,11 +108,12 @@ module soc_top (
     //   0x40000xxx        -> GPIO
     //   0x40001xxx        -> Timer
     //   diger              -> RAM data port
-    wire sel_uart_req  = (data_addr[31:28] == 4'h4) && (data_addr[13] == 1'b1) && (data_addr[12] == 1'b0);
-    wire sel_gpio_req  = (data_addr[31:28] == 4'h4) && (data_addr[13] == 1'b0) && (data_addr[12] == 1'b0);
-    wire sel_timer_req = (data_addr[31:28] == 4'h4) && (data_addr[13] == 1'b0) && (data_addr[12] == 1'b1);
+    wire sel_uart_req  = (data_addr[31:28] == 4'h4) && (data_addr[14] == 1'b0) && (data_addr[13] == 1'b1) && (data_addr[12] == 1'b0);
+    wire sel_gpio_req  = (data_addr[31:28] == 4'h4) && (data_addr[14] == 1'b0) && (data_addr[13] == 1'b0) && (data_addr[12] == 1'b0);
+    wire sel_timer_req = (data_addr[31:28] == 4'h4) && (data_addr[14] == 1'b0) && (data_addr[13] == 1'b0) && (data_addr[12] == 1'b1);
+    wire sel_i2c_req   = (data_addr[31:28] == 4'h4) && (data_addr[14] == 1'b1);
     wire sel_dram_req  = (data_addr[31:24] == 8'h00) && (data_addr[17] == 1'b1);
-    wire sel_ram_req   = ~(sel_uart_req | sel_gpio_req | sel_timer_req | sel_dram_req);
+    wire sel_ram_req   = ~(sel_uart_req | sel_gpio_req | sel_timer_req | sel_dram_req | sel_i2c_req);
 
     // RAM data port sinyalleri
     logic        ram_b_req, ram_b_gnt, ram_b_rvalid;
@@ -115,6 +122,8 @@ module soc_top (
     // UART sinyalleri
     logic        uart_req, uart_gnt, uart_rvalid;
     logic [31:0] uart_rdata;
+    logic        i2c_req, i2c_gnt, i2c_rvalid;
+    logic [31:0] i2c_rdata;
 
     // GPIO sinyalleri
     logic        gpio_req, gpio_gnt, gpio_rvalid;
@@ -131,40 +140,46 @@ module soc_top (
     // Req'i uygun module yonlendir
     assign ram_b_req  = data_req & sel_ram_req;
     assign uart_req   = data_req & sel_uart_req;
+    assign i2c_req    = data_req & sel_i2c_req;
     assign gpio_req   = data_req & sel_gpio_req;
     assign timer_req  = data_req & sel_timer_req;
     assign dram_req   = data_req & sel_dram_req;
 
     // Gnt hemen doner — request cycle'da
-    assign data_gnt = sel_uart_req  ? uart_gnt  :
+    assign data_gnt = sel_i2c_req   ? i2c_gnt   :
+                      sel_uart_req  ? uart_gnt  :
                       sel_gpio_req  ? gpio_gnt  :
                       sel_timer_req ? timer_gnt :
                       sel_dram_req  ? dram_gnt  :
                                       ram_b_gnt;
 
     // rvalid ve rdata icin select'i latch'le (OBI timing)
-    logic sel_uart_q, sel_gpio_q, sel_timer_q, sel_dram_q;
+    logic sel_uart_q, sel_gpio_q, sel_timer_q, sel_dram_q, sel_i2c_q;
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
             sel_uart_q  <= 1'b0;
+            sel_i2c_q   <= 1'b0;
             sel_gpio_q  <= 1'b0;
             sel_timer_q <= 1'b0;
             sel_dram_q  <= 1'b0;
         end else if (data_req && data_gnt) begin
             sel_uart_q  <= sel_uart_req;
+            sel_i2c_q   <= sel_i2c_req;
             sel_gpio_q  <= sel_gpio_req;
             sel_timer_q <= sel_timer_req;
             sel_dram_q  <= sel_dram_req;
         end
     end
 
-    assign data_rvalid = sel_uart_q  ? uart_rvalid  :
+    assign data_rvalid = sel_i2c_q   ? i2c_rvalid   :
+                         sel_uart_q  ? uart_rvalid  :
                          sel_gpio_q  ? gpio_rvalid  :
                          sel_timer_q ? timer_rvalid :
                          sel_dram_q  ? dram_rvalid  :
                                        ram_b_rvalid;
 
-    assign data_rdata  = sel_uart_q  ? uart_rdata  :
+    assign data_rdata  = sel_i2c_q   ? i2c_rdata   :
+                         sel_uart_q  ? uart_rdata  :
                          sel_gpio_q  ? gpio_rdata  :
                          sel_timer_q ? timer_rdata :
                          sel_dram_q  ? dram_rdata  :
@@ -243,6 +258,26 @@ module soc_top (
         .wdata_i    (data_wdata),
         .rdata_o    (uart_rdata),
         .tx_o       (uart_tx_o)
+    );
+
+    // ========================================================================
+    // I2C Master — 0x40004000 bolgesi (PRER/CTR/TXR/RXR/CMR/SR)
+    // ========================================================================
+    i2c_master u_i2c (
+        .clk_i    (clk_i),
+        .rst_ni   (rst_ni),
+        .req_i    (i2c_req),
+        .gnt_o    (i2c_gnt),
+        .rvalid_o (i2c_rvalid),
+        .we_i     (data_we),
+        .be_i     (data_be),
+        .addr_i   (data_addr),
+        .wdata_i  (data_wdata),
+        .rdata_o  (i2c_rdata),
+        .scl_o    (i2c_scl_o),
+        .scl_oe   (i2c_scl_oe),
+        .sda_o    (i2c_sda_o),
+        .sda_oe   (i2c_sda_oe)
     );
 
     // ========================================================================

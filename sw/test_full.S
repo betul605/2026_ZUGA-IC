@@ -98,7 +98,27 @@ _start:
     nop
 
     # ========================================================================
-    # 6. PASS yazdir
+    # 7. I2C Master test (M15: SoC entegrasyon dogrulamasi)
+    # PRER=4, CTR=1, TXR=0xA5, CMR=STA+WR -> I2C transaction baslar
+    # ========================================================================
+    lui   x16, 0x40004     # I2C base 0x40004000
+    addi  x17, x0, 4
+    sw    x17, 0(x16)      # PRER = 4 (hizli sim icin)
+    nop
+    addi  x17, x0, 1
+    sw    x17, 4(x16)      # CTR = 1 (EN=1)
+    nop
+    addi  x17, x0, 0xA5
+    sw    x17, 8(x16)      # TXR = 0xA5
+    nop
+    addi  x17, x0, 0x90
+    sw    x17, 16(x16)     # CMR = STA + WR
+    nop
+    nop
+    nop
+
+    # ========================================================================
+    # 8. PASS yazdir
     # ========================================================================
 pass_path:
     addi  x14, x0, 0x50    # 'P'

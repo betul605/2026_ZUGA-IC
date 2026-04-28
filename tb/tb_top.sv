@@ -9,6 +9,8 @@ module tb_top;
 
     // GPIO test pinleri
     logic        uart_tx;
+    logic        i2c_scl, i2c_scl_oe;
+    logic        i2c_sda, i2c_sda_oe;
     logic [15:0] gpio_in  = 16'h1234;
     logic [15:0] gpio_out;
 
@@ -17,7 +19,11 @@ module tb_top;
         .rst_ni     (rst_n),
         .gpio_in_i  (gpio_in),
         .gpio_out_o (gpio_out),
-        .uart_tx_o  (uart_tx)
+        .uart_tx_o  (uart_tx),
+        .i2c_scl_o  (i2c_scl),
+        .i2c_scl_oe (i2c_scl_oe),
+        .i2c_sda_o  (i2c_sda),
+        .i2c_sda_oe (i2c_sda_oe)
     );
 
     // Debug: instruction fetch izle

@@ -24,7 +24,11 @@ module fpga_top (
     output logic [3:0]  led,           // H5, J5, T9, T10
 
     // 4 switch girisi
-    input  logic [3:0]  sw             // A8, C11, C10, A10
+    input  logic [3:0]  sw,            // A8, C11, C10, A10
+
+    // I2C Master pinleri (PMOD JD, open-drain mantigi)
+    output logic        i2c_scl,       // D3 (JD1)
+    output logic        i2c_sda        // D4 (JD0)
 );
 
     // ------------------------------------------------------------------------
@@ -76,12 +80,24 @@ module fpga_top (
     // ------------------------------------------------------------------------
     // SoC top instance
     // ------------------------------------------------------------------------
+    // I2C ic sinyaller (soc_top'tan gelen output enable'lar)
+    logic i2c_scl_o_int, i2c_scl_oe_int;
+    logic i2c_sda_o_int, i2c_sda_oe_int;
+
+    // Open-drain mantigi: oe=1 -> pin=0 (cek), oe=0 -> pin=1 (high-Z, pull-up varsayim)
+    assign i2c_scl = ~i2c_scl_oe_int;
+    assign i2c_sda = ~i2c_sda_oe_int;
+
     soc_top u_soc (
         .clk_i       (clk_50),
         .rst_ni      (rst_n_clean),
         .gpio_in_i   (gpio_in_full),
         .gpio_out_o  (gpio_out_full),
-        .uart_tx_o   (uart_tx)
+        .uart_tx_o   (uart_tx),
+        .i2c_scl_o   (i2c_scl_o_int),
+        .i2c_scl_oe  (i2c_scl_oe_int),
+        .i2c_sda_o   (i2c_sda_o_int),
+        .i2c_sda_oe  (i2c_sda_oe_int)
     );
 
 endmodule

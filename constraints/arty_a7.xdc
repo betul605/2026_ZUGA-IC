@@ -44,6 +44,12 @@ set_property -dict { PACKAGE_PIN C10  IOSTANDARD LVCMOS33 } [get_ports { sw[2] }
 set_property -dict { PACKAGE_PIN A10  IOSTANDARD LVCMOS33 } [get_ports { sw[3] }];
 
 # ----------------------------------------------------------------------------
+# I2C Master (PMOD JD, harici pull-up direnci gerekir)
+# ----------------------------------------------------------------------------
+set_property -dict { PACKAGE_PIN D3   IOSTANDARD LVCMOS33 } [get_ports { i2c_scl }];  # JD1
+set_property -dict { PACKAGE_PIN D4   IOSTANDARD LVCMOS33 } [get_ports { i2c_sda }];  # JD0
+
+# ----------------------------------------------------------------------------
 # Konfigurasyon Voltaj (Arty default 3.3V)
 # ----------------------------------------------------------------------------
 set_property CFGBVS VCCO [current_design]

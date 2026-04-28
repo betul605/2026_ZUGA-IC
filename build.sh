@@ -50,6 +50,7 @@ verilator --binary --assert --sv \
   rtl/uart.sv \
   rtl/gpio.sv \
   rtl/timer.sv \
+  rtl/i2c_master.sv \
   rtl/soc_top.sv \
   tb/obi_assertions.sv \
   tb/tb_top.sv \
