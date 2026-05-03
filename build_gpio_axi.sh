@@ -9,6 +9,7 @@ verilator --binary -j 0 \
     -Wno-UNUSEDSIGNAL \
     -Wno-WIDTHEXPAND \
     -Wno-WIDTHTRUNC \
+    tb/axi_lite_assertions.sv \
     rtl/gpio_axi.sv \
     tb/gpio_axi_tb.sv
 echo ""

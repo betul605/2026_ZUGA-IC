@@ -11,6 +11,7 @@ verilator --binary -j 0 \
     -Wno-UNUSEDSIGNAL \
     -Wno-WIDTHEXPAND \
     -Wno-WIDTHTRUNC \
+    tb/axi_lite_assertions.sv \
     rtl/ram_axi.sv \
     tb/ram_axi_tb.sv
 

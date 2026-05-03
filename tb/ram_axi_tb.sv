@@ -10,6 +10,27 @@
 //   4. Byte enable (wstrb=4'b0001 sadece 1 byte yazma)
 // ============================================================================
 
+// ============================================================================
+// AXI4-Lite Protocol Check Bind (Faz 8 - Sartname Min. Kriter #3)
+// ============================================================================
+bind ram_axi axi_lite_protocol_checker u_axi_check (
+    .clk_i        (clk_i),
+    .rst_ni       (rst_ni),
+    .axi_awvalid_i(axi_awvalid_i),
+    .axi_awready_o(axi_awready_o),
+    .axi_wvalid_i (axi_wvalid_i),
+    .axi_wready_o (axi_wready_o),
+    .axi_bvalid_o (axi_bvalid_o),
+    .axi_bready_i (axi_bready_i),
+    .axi_bresp_o  (axi_bresp_o),
+    .axi_arvalid_i(axi_arvalid_i),
+    .axi_arready_o(axi_arready_o),
+    .axi_rvalid_o (axi_rvalid_o),
+    .axi_rready_i (axi_rready_i),
+    .axi_rdata_o  (axi_rdata_o),
+    .axi_rresp_o  (axi_rresp_o)
+);
+
 module ram_axi_tb;
 
     logic clk;
