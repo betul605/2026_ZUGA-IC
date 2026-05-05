@@ -32,75 +32,95 @@ tarafindan, Dr. Fatih Gul danismanliginda yurutulmustur.
 
 ### Sistem Genel Yapisi
 
-Tasarim su bilesenleri icerir:
-
 - **Cekirdek:** CV32E40P (RV32IM_Zicsr, 4-stage in-order pipeline,
   FPU=0). cv32e40p_core dogrudan kullanilmistir.
-- **Bus protokolu:** OBI (Open Bus Interface), iki master (instruction
-  + data), 6 slave (IRAM, DRAM, GPIO, Timer, UART, I2C Master).
-- **Bellek:** 8 KB IRAM (program kodu) + 8 KB DRAM (veri).
-- **Cevre birimler:** 4 sentezlenebilir modul -- 16-bit GPIO,
-  32-bit Timer, EK-2 uyumlu UART (TX state machine + baud generator),
-  OpenCores tarzi I2C Master (6 yazmac, 5-state machine).
-- **FPGA hedefi:** Xilinx Artix-7 XC7A100TCSG324-1 (Digilent Arty
-  A7-100T), 50 MHz cekirdek saati, 14 pin atamasi.
+- **Bus protokolu:** AXI4-Lite (sartname §4.1 ve EK-2 zorunlu kiliyor).
+  CV32E40P'nin urettigi OBI sinyalleri obi_to_axi_lite.sv kopru
+  modulu ile AXI4-Lite'a donusturuluyor. 5 cevre birim (RAM, GPIO,
+  Timer, UART, I2C) AXI4-Lite slave olarak yeniden yazildi.
+- **Bellek:** 8 KB IRAM + 8 KB DRAM, parametreli ram_axi.sv modulu
+  (WRITE_ENABLE parametresi ile IRAM/DRAM ikilisi tek dosyadan).
+- **Cevre birimler:** 5 AXI4-Lite slave -- gpio_axi (32-bit, EK-2),
+  timer_axi (8 yazmac), uart_axi (TX FSM + baud generator),
+  i2c_master_axi (10-durumlu I2C state machine).
+- **FPGA hedefi:** Xilinx Artix-7 XC7A100TCSG324-1 (Arty A7-100T),
+  50 MHz cekirdek saati, 14 pin atamasi.
 
 ### Sayisal Metrikler (DTR Donemi Sonu)
 
 | Metrik              | Deger                                |
 |---------------------|--------------------------------------|
-| Git commit          | 28 (1 ay icinde, 16 Mart - 28 Nis)  |
-| Milestone           | 15 (M01 - M15)                       |
-| RTL modul           | 7 (ram, uart, gpio, timer, i2c,      |
-|                     |    soc_top, fpga_top)                |
-| Self-checking test  | 4 (hello, gpio, timer, full+I2C)     |
-| OBI assertion       | 3 (gnt-req, handshake-rvalid,        |
-|                     |    rvalid-only)                      |
-| DATA bus coverage   | 21 islem (4 read + 17 write)         |
-| INSTR bus coverage  | 999 fetch                            |
-| ASSERT FAIL         | 0 (1000 cycle simulasyon)            |
-| Toplam dokumantasyon| ~3500 satir (15 .md dosyasi)         |
+| Git commit          | 37 (16 Mart - 1 May 2026)            |
+| Milestone           | 23 (M01 - M23)                       |
+| Sigorta tag         | 2 (dtr-pre-axi-m17, m22-axi-slaves)  |
+| RTL modul           | 13 (5 AXI4-Lite + Bridge + eski OBI) |
+| Bagimsiz testbench  | 8                                    |
+| Self-checking test  | 4 program (hello, gpio, timer, full) |
+| OBI Protocol Check  | 3 SVA (M07, 1000 cycle, 0 FAIL)      |
+| AXI Protocol Check  | 5 SVA × 3 modul bind (M23)           |
+| AXI fonksiyonel test| 25 senaryo, 37 transaction           |
+| AXI Bridge test     | 12 transaction                       |
+| AXI handshake gozlem| 63 (AW=13, W=13, B=13, AR=12, R=12)  |
+| ASSERT FAIL toplam  | 0 (OBI + AXI)                        |
+| Lint warning        | 0 (tum AXI moduller)                 |
+| Toplam dokumantasyon| ~4000 satir (16+ .md dosyasi)        |
 
 ### Sartname Odul Kriteri Durumu
 
-Sartname Madde 4.2.2.2 minimum 5 odul kriterinden DTR donemi sonu
-durumu:
+Sartname Madde 5.2 minimum 5 odul kriterinden DTR donemi sonu:
 
-| # | Kriter                          | DTR Durumu                |
-|---|---------------------------------|---------------------------|
-| 1 | FPGA + 2 cevre birim            | RTL hazir, sentez 3-4 May |
-| 2 | Self-checking test              | KARSILANDI (4 test)       |
-| 3 | AXI/Protocol Check              | KARSILANDI (OBI varyanti) |
-| 4 | YZ test                         | Plan (final teslim)       |
-| 5 | GDSII                           | Final teslim              |
+| # | Kriter                          | DTR Durumu                       |
+|---|---------------------------------|----------------------------------|
+| 1 | FPGA + 2 cevre birim            | RTL hazir, sentez hafta sonu     |
+| 2 | Self-checking test              | KARSILANDI (4 test, hepsi PASS)  |
+| 3 | AXI/AXI-Lite Protocol Check     | KARSILANDI (5 SVA, 63 handshake) |
+| 4 | YZ test                         | Plan (final teslim)              |
+| 5 | GDSII                           | Final teslim                     |
 
-DTR donemi 3/5 kriter karsilanmis, kalan 2 kriter (#4 ve #5) final
-teslim donemi (Mayis-Agustos 2026) icin planlanmistir.
+DTR donemi 3/5 kriter karsilanmis (#1 hafta sonu Vivado sentez ile
+tamamlanacak), kalan 2 kriter (#4 ve #5) final teslim donemi
+(Mayis-Temmuz 2026) icin planlanmistir.
 
 ### ONTR'den DTR'ye Yapilan Akilli Tercihler
 
-- Bus protokolu: AXI4-Lite -> OBI direkt (CV32E40P uyumu, sentez
-  basitligi). AXI4-Lite wrapper final teslim icin.
-- RTL dili: Verilog -> SystemVerilog 2017 (tip guvenligi, parametre).
-- Doğrulama: tam UVM -> SVA + always_ff (Verilator-uyumlu, pragmatik).
-- Bellek haritasi: Boot ROM 0x00 -> IRAM 0x00 (linker basitligi,
-  regression riskini onleme).
-- Cevre birimler: Tum liste -> 4 modul (GPIO, Timer, UART, I2C).
-  Sartname kriteri 2 cevre birim, biz 2 katini saglddik.
+- **Bus protokolu:** ONTR'de AXI4-Lite belirtilmisti, ilk implementasyon
+  OBI ile yapildi (CV32E40P direkt OBI uretiyor). DTR donemi sartname
+  yeniden okunarak AXI4-Lite gereksinimi tespit edildi (Sartname
+  Analizi, 28 Nis). 5-7 gunluk yogun calisma ile tum cevre birimler
+  AXI4-Lite slave olarak yeniden yazildi (M17-M22, 8 fazli plan).
+- **RTL dili:** Verilog -> SystemVerilog 2017 (tip guvenligi, parametre,
+  enum).
+- **Doğrulama:** Tam UVM -> SVA + always_ff (Verilator-uyumlu,
+  pragmatik). Sartname §5.2 minimum kriter #3 SVA yontemi ile
+  karsilandi (5 ana AXI4-Lite kurali).
+- **Cevre birimler:** Tum liste -> 5 modul. Sartname kriteri 2 cevre
+  birim, biz 2.5 katini sagladik. Hepsi sartname EK-2 yazmac
+  haritalarina birebir uyumlu.
 
-Bu tercihlerin **hepsinin teknik gerekc0esi vardir** ve final teslim
-icin tamamlanma plani mevcuttur (Bolum 2 ve Ek dokumanlarda detayli).
+Bu tercihlerin **hepsinin teknik gerekcesi vardir** ve final teslim
+icin tamamlanma plani mevcuttur (Bolum 12'de detayli risk analizi).
 
 ### Anahtar Basari
 
-Tasarimin en kritik dogrulamasi: 1000 cycle simulasyon boyunca **0
-ASSERT FAIL** ile 4 self-checking testi gec0en, 6 slave OBI bus'a
-3 protocol kuralini uygulayan, sentezlenebilir RTL elde edildi.
-Kaynak kod GitHub'da herkese acik (github.com/betul605/ZUGA-IC),
-15 detayli milestone dokumani ile her gelisim adimi kayit altina
-alinmistir.
+Tasarimin en onemli sonuclari:
 
----
+1. **AXI4-Lite gec0is:** 7 fazli plan, 5 cevre birim + Bridge yeniden
+   yazildi. 37 fonksiyonel transaction + 12 bridge transaction =
+   49 AXI test, **0 hata, 0 lint warning**.
+2. **Protocol Check:** 5 SVA assertion 3 modulde aktif (RAM, GPIO,
+   Timer). 63 handshake gozlemi, **0 ASSERT FAIL**. Sartname §5.2
+   minimum kriter #3 dogrudan karsilandi.
+3. **Self-checking test programlari:** 4 program (hello, GPIO, Timer,
+   full regression+I2C) - hepsi PASS, 1000 cycle OBI Protocol Check
+   sirasinda 0 hata.
+4. **Sartname EK-2 uyumu:** 5 cevre birim yazmac haritalari birebir
+   spesifikasyona uygun (GPIO 32-bit, Timer 8 yazmac, UART 5 yazmac,
+   I2C 5 yazmac, RAM parametreli).
+
+Kaynak kod GitHub'da herkese acik (github.com/betul605/ZUGA-IC),
+23 detayli milestone dokumani ile her gelisim adimi kayit altina
+alinmistir. 2 sigorta git tag'i (dtr-pre-axi-m17, m22-axi-slaves-done)
+risk yonetimi icin konuldu.
 
 ## 2. ONTR'den Bu Yana Yapilan Degisiklikler
 
@@ -486,6 +506,93 @@ Yorum: OBI bus protocolu tamamen dogru (3 kural, 2 instance,
 Tam 8 bit gec0is + 1 stop gec0is = 9 edge gozlendi. Cycle araligi
 CPB=16 ile uyumlu (16 cycle/bit). UART standardina uygun.
 
+### 7.4 AXI4-Lite Slave Bagimsiz Dogrulama
+
+[KAYNAK: M18-M22 simulasyon ciktilari]
+
+Sartname §4.1 ve EK-2 geregi 5 cevre birim AXI4-Lite slave olarak 
+yeniden yazildi. Her biri icin bagimsiz testbench olusturuldu ve 
+calistirildi:
+
+| Modul | Yazmac sayisi | Test senaryo | Transaction | Sonuc |
+|-------|---------------|--------------|-------------|-------|
+| ram_axi (M18) | parametreli (IRAM/DRAM) | 4 | 4 write + 4 read | PASS |
+| gpio_axi (M19) | 2 (IDR, ODR, 32-bit) | 4 | 2 write + 3 read | PASS |
+| timer_axi (M20) | 8 (PRE/ARE/CLR/ENA/MOD/CNT/EVN/EVC) | 5 | 7 write + 5 read | PASS |
+| uart_axi (M21) | 5 (CPB/STP/RDR/TDR/CFG) | 6 | 4 write + 4 read | PASS |
+| i2c_master_axi (M22) | 5 (NBY/ADR/RDR/TDR/CFG) | 5 | 5 write + 5 read | PASS |
+
+Toplam: 25 cesitli test senaryo, 37 transaction, 0 hata.
+
+Tum modullerde sartname EK-2 yazmac haritalari birebir uyumlu. 
+Tum modullerde lint temizligi (0 warning, 0 error) saglandi.
+
+### 7.5 AXI4-Lite Bridge Dogrulama
+
+[KAYNAK: M17 Faz 1 simulasyon ciktilari]
+
+Cekirdek (CV32E40P) OBI protokolu uretiyor. AXI4-Lite ara baglantiya 
+gec0is icin OBI -> AXI4-Lite kopru modulu (obi_to_axi_lite.sv) 
+yazildi. 6 durumlu state machine ile AXI4-Lite'in 5 kanali 
+(AW, W, B, AR, R) yonetiliyor.
+
+Bagimsiz testbench (obi_to_axi_lite_tb.sv) sonuclari:
+
+- Test 1: Tek WRITE transaction - PASS
+- Test 2: Tek READ transaction - PASS  
+- Test 3: Back-to-back 5 WRITE - 5/5 PASS
+- Test 4: Back-to-back 5 READ - 5/5 PASS
+
+Toplam: 6 write + 6 read = 12 transaction, 0 hata.
+
+### 7.6 AXI4-Lite Protocol Check (Sartname §5.2 Min. Kriter #3)
+
+[KAYNAK: M23 simulasyon ciktilari]
+
+Sartname §5.2 minimum basari kriteri #3:
+> "Cevre birimleri ve YZ hizlandiricinin {AXI or AXI-Lite} 
+> arayuzlerinin en azindan protocol check duzeyinde AXI 
+> agent'lariyla dogrulanmasi"
+
+Bu kriter SVA (SystemVerilog Assertions) yontemi ile karsilandi.
+5 ana AXI4-Lite spec kurali yazildi:
+
+1. AW handshake stability (AWVALID dustu mu AWREADY'siz?)
+2. W handshake stability (WVALID dustu mu WREADY'siz?)
+3. B response stability (BVALID + BRESP degisti mi BREADY'siz?)
+4. AR handshake stability (ARVALID dustu mu ARREADY'siz?)
+5. R response stability (RVALID + RDATA + RRESP degisti mi RREADY'siz?)
+
+3 modulde bind ile bagli:
+
+| Modul | AW count | W count | B count | AR count | R count | FAIL |
+|-------|----------|---------|---------|----------|---------|------|
+| ram_axi | 4 | 4 | 4 | 4 | 4 | 0 |
+| gpio_axi | 2 | 2 | 2 | 3 | 3 | 0 |
+| timer_axi | 7 | 7 | 7 | 5 | 5 | 0 |
+| **TOPLAM** | **13** | **13** | **13** | **12** | **12** | **0** |
+
+Toplam handshake gozlemi: 63
+Toplam kural degerlendirmesi: 5 kural × 63 transaction = 315
+ASSERT FAIL sayisi: 0
+
+Sartname minimum basari kriteri #3 KARSILANDI.
+
+### 7.7 Genel Dogrulama Ozeti
+
+| Kategori | Test sayisi | Transaction | Hata |
+|----------|-------------|-------------|------|
+| OBI self-checking (M01-M10) | 4 program | 4+13+999 = 1016 | 0 |
+| OBI Protocol Check (M07) | 3 SVA | 1000 cycle | 0 |
+| AXI Slave bagimsiz (M18-M22) | 25 senaryo | 37 | 0 |
+| AXI Bridge (M17) | 4 senaryo | 12 | 0 |
+| AXI Protocol Check (M23) | 5 SVA × 3 modul | 63 handshake | 0 |
+| **TOPLAM** | **44 senaryo + 8 SVA** | **100+ AXI transaction** | **0** |
+
+GitHub repository'de detayli simulator ciktilari, build script'leri 
+ve test programlari mevcuttur (37 commit, sigorta tag'leri: 
+dtr-pre-axi-m17, m22-axi-slaves-done).
+
 ---
 
 ## 8. Karsilasilan Zorluklar ve Cozumler
@@ -694,30 +801,107 @@ tam Conv1D + Depthwise + FC katmanlari.
 
 ## 12. Risk Analizi
 
-### 12.1 DTR Donemi Riskleri
+Bu bolum sartname Sunum Puani kriteri geregi, eksiklerin acik bir 
+sekilde anlatimini icermektedir. Riskler uc grupta sunulmustur:
 
-**Risk 1: Vivado sentez basarisiz olabilir**
+### 12.1 DTR'ye Kadar Olan Riskler (15 Mayis Hedef)
+
+**Risk 1: Vivado sentez basarisiz olabilir** [YUKSEK]
 - Olasilik: Orta
-- Etki: Yuksek (DTR'de "FPGA hazirligi" zayiflar)
-- Azaltma: Hafta sonu 1-1.5 saatlik deneme; basarisizsa sebebini
-  belirleyip duzelt
+- Etki: Yuksek (Sartname §3.2.2 zorunlu kiliyor)
+- Azaltma: Hafta sonu (3-4 May) Umur Bugra Dikmen ile birlikte 
+  1.5-2 saatlik seans planlandi. Eger kritik yol uyarisi cikarsa 
+  pipelining ekleme veya saat hedefini dusurme secenekleri var.
+  Sentez sonuclari DTR'ye eklenecek.
 
-**Risk 2: YZ MAC iskelet zaman almaz**
+**Risk 2: Boot ROM + Memory Map degisikligi regression yaratabilir** [ORTA]
+- Olasilik: Orta
+- Etki: Orta-Yuksek
+- Azaltma: Mevcut testler icin sigorta tag'i (m22-axi-slaves-done) 
+  konuldu. Boot ROM ekleme oncesi/sonrasi tam regression 
+  calistirilacak. Hata ciktiginda git revert ile geri donus mumkun.
+
+**Risk 3: DTR PDF formati sartname spesifikasyonunu karsilamayabilir** [DUSUK]
 - Olasilik: Dusuk
-- Etki: Orta (Kriter #4 zemin yok)
-- Azaltma: Opsiyonel; DTR'de "plan" olarak goster
+- Etki: Orta (format puani)
+- Azaltma: Pandoc ile markdown -> PDF donusumu test edildi. 
+  Format spesifikasyonu (A4, 11 punto Calibri, 1.15 satir, 
+  max 30 sayfa, max 60 MB) hazirlanirken dogrulanacak.
 
-**Risk 3: DTR rapor yazimi son haftaya birikir**
-- Olasilik: Dusuk (sablon hazir, milestone dokumanlari hazir)
-- Etki: Yuksek
-- Azaltma: Bu sablon (M11) erken hazirlandi
+### 12.2 Bilincli Olarak Erteleyen Eksikler
 
-### 12.2 Final Teslim Donemi Riskleri (Bilgi Amacli)
+Asagidaki maddeler bilincli olarak Final teslime (31 Temmuz) 
+ertelendi. Bunlar DTR puanini dogrudan etkilemiyor cunku alt-sistem 
+testleri ile yeterli kanit saglandi.
 
-- AXI4-Lite wrapper: 200-300 satir ek RTL, 1 hafta
-- UVM agent: 3-4 saatlik ogrenme egrisi + implementasyon
-- YZ tam Conv: 15-20 saatlik is
-- GDSII (Sky130): Tam yeni akis, takim bilgi gerektirir
+**Eksik 1: soc_top Tam AXI4-Lite Entegrasyonu (Faz 7)**
+- Mevcut durum: 5 AXI4-Lite slave bagimsiz test edildi 
+  (37/37 transaction PASS), AXI Bridge 12/12 PASS, AXI Protocol 
+  Check 3 modulde 63 handshake / 0 FAIL.
+- Eksiklik: soc_top.sv hala OBI tabanli decoder kullaniyor. 
+  AXI4-Lite tam entegrasyon Final dönemi yapilacak.
+- Risk azaltma: DTR'de alt-sistemlerin tek tek dogrulanmasi 
+  (5 slave + bridge + 5 SVA assertion) yeterli kanit sagliyor. 
+  Sartname §5.2 minimum basari kriteri #3 (AXI protocol check 
+  duzeyi) bagimsiz testlerle karsilandi.
+
+**Eksik 2: Boot ROM + Memory Map Reorganizasyonu** (DTR'ye kadar yapilacak)
+- Sartname §4.2.2.1: QSPI'dan boot, bootloader ROM 512B-1KB
+- Mevcut: Program direkt IRAM 0x00 adresinde calisiyor, 
+  Boot ROM yok. ÖNTR'de Boot ROM 0x00'da, IRAM 0x10000'da 
+  belirtilmisti, basitlestirme yapildigindan sapma var.
+- Plan: Hafta 2 basi (5-6 May), 1.5-2 gunluk is.
+
+**Eksik 3: 2. UART Instance (UART-stream)** (DTR'ye kadar yapilacak)
+- Sartname §4.2.2: 2x UART (genel kullanim + YZ veri akisi amacli)
+- Mevcut: 1 UART (uart_axi.sv, sartname EK-2 birebir uyumlu)
+- Plan: Hafta 2 (8-9 May), mevcut modul kopyalanip ikinci 
+  instance olarak baglanacak. 1 gunluk is.
+
+### 12.3 Final Teslim Donemi Riskleri (31 Temmuz)
+
+Asagidaki maddeler Final teslim icin planlandi. Sartname §5.2 
+minimum basari kriterleri ve ek puanlar icin gerekli:
+
+- **YZ Hizlandirici (TFLite Tiny Conv):** 2-3 haftalik is. 
+  Sartname EK-1 detayli, AXI master + 30 KB SRAM + UART-stream 
+  giris, ucbuyuk class siniflandirma cikisi.
+  Risk seviyesi: Yuksek.
+
+- **QSPI Master:** 1 haftalik is. Sartname EK-2'de detayli yazmac 
+  tanimlamalari var. x1/x2/x4 destek, 16 komut destegi.
+  Risk seviyesi: Orta.
+
+- **UART RX (Receive):** 2-3 gunluk is. Mevcut TX modulu 
+  genisletilecek. Sartname EK-2 UART_RDR yazmaci icin gerekli.
+  Risk seviyesi: Orta.
+
+- **UVM Agent (AXI dogrulama):** 1-2 haftalik is. Sartname §4.1 
+  AXI dogrulamasinda UVM kutuphanesi istiyor. Su an SVA + 
+  always_ff kullaniyoruz. Verilator UVM destegi sinirli, baska 
+  simulator (ModelSim/Questa) gerekebilir.
+  Risk seviyesi: Yuksek.
+
+- **GDSII (Sky130 + OpenLane):** Final donemi tam yeni akis. 
+  Cip Akisi puaninin (%20) tamami buradan geliyor.
+  Risk seviyesi: Cok Yuksek (yeni teknoloji, takim ogrenme egrisi).
+
+- **JTAG Debug Modulu (opsiyonel):** 3-4 gunluk is. Sartname 
+  EK-2'de detayli, +3 bonus puan. pulp-platform riscv-dbg acik 
+  kaynak kullanilabilir. Zaman kalirsa.
+  Risk seviyesi: Dusuk.
+
+### 12.4 Seffaflik Ilkesi
+
+Sartname Sunum Puani kriteri sunlari belirtmektedir:
+
+> "Sartnameye gore eksikliklerin acik bir sekilde anlatimi ve analizi"
+
+Bu rapor bu ilkeyi su sekilde uygulamaktadir:
+- Tum eksikler yukarida acikca listelenmistir
+- Her eksik icin sebep ve plan belirtilmistir  
+- Riskler dusuk/orta/yuksek seviyelerinde isaretlenmistir
+- Bilincli erteleme kararlari (Faz 7 gibi) gerekceleri ile sunulmustur
 
 ---
 
