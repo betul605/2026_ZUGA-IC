@@ -1,0 +1,28 @@
+=== GPIO AXI Build ===
+make: Entering directory '/home/betul/cv32_sim/obj_dir_gpio_axi'
+make: Nothing to be done for 'default'.
+make: Leaving directory '/home/betul/cv32_sim/obj_dir_gpio_axi'
+
+=== GPIO AXI Run ===
+[TB] gpio_axi testbench BASLADI
+[TB] Test 1: ODR'a 0xCAFE yaz, gpio_out kontrol
+[TB] PASS: gpio_out = CAFE
+[TB] Test 2: gpio_in=BEEF, IDR oku
+[TB] PASS: IDR = 0000BEEF (ust 16 bit 0)
+[TB] Test 3: ODR'a 0xFFFFFFFF yaz, sadece [15:0] etkili
+[TB] PASS: gpio_out = FFFF (ust 16 bit yok sayildi)
+[TB] PASS: ODR okundu = 0000FFFF
+[TB] Test 4: Yanlis adres (0x08) okuma, 0 donmeli
+[TB] PASS: Yanlis adres 0 donduruldu
+[TB] ====== TEST SONUCU ======
+[TB] writes_done = 2 (beklenen: 2)
+[TB] reads_done  = 3 (beklenen: 3)
+[TB] errors      = 0
+[TB] ====== ALL TESTS PASSED ======
+- tb/gpio_axi_tb.sv:215: Verilog $finish
+[AXI-CHECK] Sonuc raporu:
+[AXI-CHECK]   AW handshake count = 2
+[AXI-CHECK]   W  handshake count = 2
+[AXI-CHECK]   B  response count  = 2
+[AXI-CHECK]   AR handshake count = 3
+[AXI-CHECK]   R  response count  = 3

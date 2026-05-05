@@ -1,0 +1,21 @@
+=== AXI Bridge Build ===
+make: Entering directory '/home/betul/cv32_sim/obj_dir_axi'
+make: Nothing to be done for 'default'.
+make: Leaving directory '/home/betul/cv32_sim/obj_dir_axi'
+
+=== AXI Bridge Run ===
+[TB] Bridge testbench BASLADI
+[TB] Test 1: Tek WRITE transaction
+[TB] PASS: WRITE data dogru
+[TB] Test 2: Tek READ transaction
+[TB] PASS: READ data dogru (CAFE_1234)
+[TB] Test 3: Back-to-back 5 WRITE
+[TB] 5 WRITE tamamlandi (writes_done=5)
+[TB] Test 4: Back-to-back 5 READ
+[TB] 5 READ tamamlandi (reads_done=5)
+[TB] ====== TEST SONUCU ======
+[TB] writes_done = 6 (beklenen: 6)
+[TB] reads_done  = 6 (beklenen: 6)
+[TB] errors      = 0
+[TB] ====== ALL TESTS PASSED ======
+- tb/obi_to_axi_lite_tb.sv:303: Verilog $finish

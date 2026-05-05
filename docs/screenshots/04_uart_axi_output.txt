@@ -1,0 +1,25 @@
+=== UART AXI Build ===
+make: Entering directory '/home/betul/cv32_sim/obj_dir_uart_axi'
+make: Nothing to be done for 'default'.
+make: Leaving directory '/home/betul/cv32_sim/obj_dir_uart_axi'
+
+=== UART AXI Run ===
+[TB] uart_axi testbench BASLADI
+[TB] Test 1: CPB=4 yaz, oku, dogrula
+[TB] PASS: CPB=4 dogru yazildi
+[TB] CFG = 00000001 (beklenen [0]=1)
+[TB] PASS: TX_EN=1
+[TB] Test 2: TDR='A' (0x41) yaz, TX baslamali
+A[TB] Start bit (tx_serial=0) gozlendi
+[TB] Test 3: 10-bit frame bekle (40+ cycle)
+[TB] Test 4: TX_DONE flag kontrol
+[TB] PASS: TX_DONE=1 (TX tamamlandi)
+[TB] PASS: tx_serial idle (high)
+[TB] Test 5: CFG[2] clear
+[TB] PASS: TX_DONE=0 (clear basarili)
+[TB] ====== TEST SONUCU ======
+[TB] writes_done = 4 (beklenen: 4)
+[TB] reads_done  = 4 (beklenen: 4)
+[TB] errors      = 0
+[TB] ====== ALL TESTS PASSED ======
+- tb/uart_axi_tb.sv:188: Verilog $finish

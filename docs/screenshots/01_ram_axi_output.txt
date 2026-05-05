@@ -1,0 +1,28 @@
+=== RAM AXI Build ===
+make: Entering directory '/home/betul/cv32_sim/obj_dir_ram_axi'
+make: Nothing to be done for 'default'.
+make: Leaving directory '/home/betul/cv32_sim/obj_dir_ram_axi'
+
+=== RAM AXI Run ===
+[TB] ram_axi testbench BASLADI
+[TB] Test 1: Tek WRITE @0x10, data=0xCAFEBABE
+[TB] PASS: WRITE tamamlandi
+[TB] Test 2: Tek READ @0x20 (varsayilan 0 olmali)
+[TB] PASS: READ varsayilan 0
+[TB] Test 3: Write-then-Read @0x40, data=0xDEADBEEF
+[TB] PASS: Yazilan veri okundu (DEADBEEF)
+[TB] Test 4: Byte enable wstrb=4'b0001 (sadece bayt 0)
+[TB] Once dolu: read=ffffffff
+[TB] PASS: Byte enable dogru calisti (FFFFFFAA)
+[TB] ====== TEST SONUCU ======
+[TB] writes_done = 4 (beklenen: 4)
+[TB] reads_done  = 4 (beklenen: 4)
+[TB] errors      = 0
+[TB] ====== ALL TESTS PASSED ======
+- tb/ram_axi_tb.sv:224: Verilog $finish
+[AXI-CHECK] Sonuc raporu:
+[AXI-CHECK]   AW handshake count = 4
+[AXI-CHECK]   W  handshake count = 4
+[AXI-CHECK]   B  response count  = 4
+[AXI-CHECK]   AR handshake count = 4
+[AXI-CHECK]   R  response count  = 4

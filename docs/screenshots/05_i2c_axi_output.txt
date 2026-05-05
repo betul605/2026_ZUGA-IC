@@ -1,0 +1,24 @@
+=== I2C AXI Build ===
+make: Entering directory '/home/betul/cv32_sim/obj_dir_i2c_axi'
+make: Nothing to be done for 'default'.
+make: Leaving directory '/home/betul/cv32_sim/obj_dir_i2c_axi'
+
+=== I2C AXI Run ===
+[TB] i2c_master_axi testbench BASLADI
+[TB] Test 1: NBY=1, ADR=0x50, TDR=0xA5 yapilandirma
+[TB] PASS: NBY=1
+[TB] PASS: ADR=0x50
+[TB] PASS: TDR=0xA5
+[TB] Test 2: CFG[0]=TX_EN=1 yaz, transfer baslamali
+[TB] Transfer bekleniyor (~500 cycle)
+[TB] Test 3: TX_DONE flag kontrol
+[TB] CFG = 00000003 (beklenen [1]=1)
+[TB] PASS: TX_DONE=1 (transfer tamamlandi)
+[TB] Test 4: TX_DONE clear (CFG[1]=0 yaz)
+[TB] PASS: TX_DONE=0 (clear basarili)
+[TB] ====== TEST SONUCU ======
+[TB] writes_done = 5
+[TB] reads_done  = 5
+[TB] errors      = 0
+[TB] ====== ALL TESTS PASSED ======
+- tb/i2c_master_axi_tb.sv:199: Verilog $finish

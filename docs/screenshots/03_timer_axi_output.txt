@@ -1,0 +1,30 @@
+=== Timer AXI Build ===
+make: Entering directory '/home/betul/cv32_sim/obj_dir_timer_axi'
+make: Nothing to be done for 'default'.
+make: Leaving directory '/home/betul/cv32_sim/obj_dir_timer_axi'
+
+=== Timer AXI Run ===
+[TB] timer_axi testbench BASLADI
+[TB] Test 1: PRE=0, ARE=10, ENA=1 -> sayac calismali
+[TB] PASS: Sayac calisiyor (CNT=3)
+[TB] Test 2: CNT artmaya devam etmeli
+[TB] CNT ikinci okuma: 10 (ilk: 3)
+[TB] PASS: Sayac ilerliyor
+[TB] Test 3: ARE'a ulasti -> EVN >= 1 olmali
+[TB] PASS: EVN=3 (event uretildi)
+[TB] Test 4: ENA=0 + CLR=1 -> CNT 0 olmali
+[TB] PASS: CLR sonrasi CNT=0
+[TB] Test 5: TIM_EVC=1 -> EVN 0 olmali (ENA zaten 0)
+[TB] PASS: EVC sonrasi EVN=0
+[TB] ====== TEST SONUCU ======
+[TB] writes_done = 7 (beklenen: 6)
+[TB] reads_done  = 5 (beklenen: 5+)
+[TB] errors      = 0
+[TB] ====== ALL TESTS PASSED ======
+- tb/timer_axi_tb.sv:213: Verilog $finish
+[AXI-CHECK] Sonuc raporu:
+[AXI-CHECK]   AW handshake count = 7
+[AXI-CHECK]   W  handshake count = 7
+[AXI-CHECK]   B  response count  = 7
+[AXI-CHECK]   AR handshake count = 5
+[AXI-CHECK]   R  response count  = 5
