@@ -208,30 +208,54 @@ ASCII gorunumu (kompakt):
 
 Adres haritasi (ozet):
 
-| Bolge      | Adres Araligi           | Modul     | Boyut  |
-|------------|-------------------------|-----------|--------|
-| IRAM       | 0x00000000-0x00001FFF   | Program   | 8 KB   |
-| DRAM       | 0x00020000-0x00021FFF   | Veri      | 8 KB   |
-| GPIO       | 0x40000000-0x40000FFF   | 16-bit IO | 4 KB   |
-| Timer      | 0x40001000-0x40001FFF   | 32-bit    | 4 KB   |
-| UART       | 0x40002000-0x40002013   | EK-2      | 20 B   |
-| I2C Master | 0x40004000-0x40004017   | OpenCores | 24 B   |
+| Bolge      | Adres Araligi           | Modul              | Boyut  | Durum |
+|------------|-------------------------|--------------------|---------|-------|
+| Boot ROM   | 0x00000000-0x000001FF   | bootloader.hex     | 512 B  | M29 OK|
+| IRAM       | 0x00010000-0x00011FFF   | Program (planli)   | 8 KB   | M18 OK|
+| DRAM       | 0x00020000-0x00021FFF   | Veri               | 8 KB   | M18 OK|
+| GPIO       | 0x40000000-0x40000007   | 32-bit IO (EK-2)   | 8 B    | M19 OK|
+| Timer      | 0x40001000-0x4000101F   | 8 yazmac (EK-2)    | 32 B   | M20 OK|
+| UART-0     | 0x40002000-0x40002013   | Genel (EK-2)       | 20 B   | M21 OK|
+| UART-1     | 0x40003000-0x40003013   | YZ Stream (EK-2)   | 20 B   | Pzt   |
+| I2C Master | 0x40004000-0x40004013   | EK-2 yazmaclar     | 20 B   | M22 OK|
 
-Adres dekod mantigi soyledir: data_addr[31:28] == 4'h4 ise cevre
-birim bolgesi; addr[14] == 1 ise I2C, degilse addr[13] ve addr[12]
-ile GPIO/Timer/UART arasinda secim. addr[31:28] == 4'h0 ise IRAM
-veya DRAM (addr[17] biti ile ayrilir).
+OTR Tablo 1 ile birebir uyumlu. Boot ROM eklendiginde IRAM adresi 
+0x0000_0000'dan 0x0001_0000'a kaydirildi (OTR Bolum 2.2 ile uyum).
+
+Adres dekod mantigi (planlanan soc_top_axi entegrasyonu icin): 
+addr[31:28] == 4'h0 ise alt-bolge (Boot ROM 0x000xxxxx, IRAM 
+0x0001xxxx, DRAM 0x0002xxxx); addr[31:28] == 4'h4 ise cevre birim 
+bolgesi (GPIO/Timer/UART/I2C, addr[15:12] ile alt-secim).
 
 
-### 3.2 Bellek Haritasi (Final)
 
-| Adres Araligi          | Modul | Boyut | Aciklama         |
-|------------------------|-------|-------|------------------|
-| 0x00000000-0x00001FFF  | IRAM  | 8 KB  | Instruction RAM  |
-| 0x00020000-0x00021FFF  | DRAM  | 8 KB  | Data RAM         |
-| 0x40000000-0x40000FFF  | GPIO  | 4 KB  | 16-bit IO        |
-| 0x40001000-0x40001FFF  | Timer | 4 KB  | CLR/ENA/CNT      |
-| 0x40002000-0x40002013  | UART  | 20 B  | EK-2 yazmaclar   |
+### 3.2 Bellek Haritasi (Final - OTR Tablo 1 birebir)
+
+OTR ÖNTR'de belirlenen bellek haritasi DTR donemi boyunca degismedi. 
+Boot ROM (M29) ve QSPI Master (Final) modulleri OTR Tablo 1'e tam 
+uyumlu olarak planlandi.
+
+| Baslangic    | Bitis        | Blok                   | Boyut  | Tip    | Durum  |
+|--------------|--------------|------------------------|--------|--------|--------|
+| 0x0000_0000  | 0x0000_01FF  | Boot ROM               | 512 B  | ROM    | M29 OK |
+| 0x0001_0000  | 0x0001_1FFF  | Instruction RAM (IRAM) | 8 kB   | RAM    | M18 OK |
+| 0x0002_0000  | 0x0002_1FFF  | Data RAM (DRAM)        | 8 kB   | RAM    | M18 OK |
+| 0x0003_0000  | 0x0003_77FF  | YZ Hizlandirici SRAM   | 30 kB  | RAM    | Final  |
+| 0x4000_0000  | 0x4000_0007  | GPIO (IDR + ODR)       | 8 B    | Periph | M19 OK |
+| 0x4000_1000  | 0x4000_101F  | Timer (8 yazmac)       | 32 B   | Periph | M20 OK |
+| 0x4000_2000  | 0x4000_2013  | UART-0 (Genel)         | 20 B   | Periph | M21 OK |
+| 0x4000_3000  | 0x4000_3013  | UART-1 (YZ Stream)     | 20 B   | Periph | Pzt    |
+| 0x4000_4000  | 0x4000_4013  | I2C Master (400 kHz)   | 20 B   | Periph | M22 OK |
+| 0x4000_5000  | 0x4000_5017  | QSPI Master (x1/x2/x4) | 24 B   | Periph | Final  |
+| 0x5000_0000  | 0x5000_001F  | YZ Hizlandirici CSR    | 32 B   | HW     | Final  |
+
+**Durum kolonu kisaltmalari:**
+- **MXX OK:** Milestone XX'de tamamlandi, bagimsiz testbench ile dogrulandi
+- **Pzt:** 11 May Pazartesi planlandi (UART-1 instance)
+- **Final:** 31 Temmuz Final teslim donemi
+
+DTR donemi sonu durumu: 11 modulden 7'si bagimsiz testbench ile 
+PASS, 1'i hafta basi planlanan, 3'u Final donemine planlandi.
 
 ### 3.3 Saat ve Reset
 
