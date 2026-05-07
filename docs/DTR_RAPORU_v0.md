@@ -216,7 +216,7 @@ Adres haritasi (ozet):
 | GPIO       | 0x40000000-0x40000007   | 32-bit IO (EK-2)   | 8 B    | M19 OK|
 | Timer      | 0x40001000-0x4000101F   | 8 yazmac (EK-2)    | 32 B   | M20 OK|
 | UART-0     | 0x40002000-0x40002013   | Genel (EK-2)       | 20 B   | M21 OK|
-| UART-1     | 0x40003000-0x40003013   | YZ Stream (EK-2)   | 20 B   | Pzt   |
+| UART-1     | 0x40003000-0x40003013   | YZ Stream (EK-2)   | 20 B   | M31 OK|
 | I2C Master | 0x40004000-0x40004013   | EK-2 yazmaclar     | 20 B   | M22 OK|
 
 OTR Tablo 1 ile birebir uyumlu. Boot ROM eklendiginde IRAM adresi 
@@ -244,18 +244,18 @@ uyumlu olarak planlandi.
 | 0x4000_0000  | 0x4000_0007  | GPIO (IDR + ODR)       | 8 B    | Periph | M19 OK |
 | 0x4000_1000  | 0x4000_101F  | Timer (8 yazmac)       | 32 B   | Periph | M20 OK |
 | 0x4000_2000  | 0x4000_2013  | UART-0 (Genel)         | 20 B   | Periph | M21 OK |
-| 0x4000_3000  | 0x4000_3013  | UART-1 (YZ Stream)     | 20 B   | Periph | Pzt    |
+| 0x4000_3000  | 0x4000_3013  | UART-1 (YZ Stream)     | 20 B   | Periph | M31 OK |
 | 0x4000_4000  | 0x4000_4013  | I2C Master (400 kHz)   | 20 B   | Periph | M22 OK |
 | 0x4000_5000  | 0x4000_5017  | QSPI Master (x1/x2/x4) | 24 B   | Periph | Final  |
 | 0x5000_0000  | 0x5000_001F  | YZ Hizlandirici CSR    | 32 B   | HW     | Final  |
 
 **Durum kolonu kisaltmalari:**
 - **MXX OK:** Milestone XX'de tamamlandi, bagimsiz testbench ile dogrulandi
-- **Pzt:** 11 May Pazartesi planlandi (UART-1 instance)
+- **M31 OK:** Milestone 31'de tamamlandi (Dual UART testbench)
 - **Final:** 31 Temmuz Final teslim donemi
 
-DTR donemi sonu durumu: 11 modulden 7'si bagimsiz testbench ile 
-PASS, 1'i hafta basi planlanan, 3'u Final donemine planlandi.
+DTR donemi sonu durumu: 11 modulden 8'i bagimsiz testbench ile 
+PASS, 3'u Final donemine planlandi.
 
 ### 3.3 Saat ve Reset
 
@@ -821,53 +821,122 @@ yeni teknoloji. Cip Akisi puaninin (%20) tamami buradan gelmektedir.
 ---
 ## 11. Takvim ve Kalan Is
 
-### 11.1 Tamamlanan Donem (16 Mart - 27 Nisan 2026)
+### 11.1 Tamamlanan Donem (16 Mart - 7 Mayis 2026)
+
+DTR donemi 33 milestone ile dort ana fazda yurutuldu. Her milestone 
+ayri git commit ve milestone .md dokumani ile kayit altina alindi.
+
+**Faz 1 - SoC Iskelet (16 Mart - 27 Nisan, M01-M10):**
 
 | Tarih   | Milestone | Aciklama |
 |---------|-----------|----------|
-| 16 Mart | ONTR teslim | Ontasarim Raporu |
-| 22 Nis  | M01 | CV32E40P "Hi" |
-| 23 Nis  | M02 | Modular SoC + OBI |
-| 23 Nis  | M03 | GPIO + 'P' |
-| 23 Nis  | M04 | Timer + 'T' |
-| 26 Nis  | M05 | IRAM/DRAM ayrimi |
+| 16 Mart | OTR teslim | Ontasarim Raporu (8 sayfa, OTR Tablo 1) |
+| 22 Nis  | M01 | CV32E40P "Hi" - ilk fonksiyonel test |
+| 23 Nis  | M02 | Modular SoC + OBI bus iskelet |
+| 23 Nis  | M03 | GPIO + 'P' karakter testi |
+| 23 Nis  | M04 | Timer + 'T' karakter testi |
+| 26 Nis  | M05 | IRAM/DRAM ayrimi (Harvard mimari) |
 | 26 Nis  | M06 | EK-2 uyumlu UART (Faz 1) |
-| 26 Nis  | M07 | SVA Protocol Check |
-| 27 Nis  | M08 | Comprehensive test |
-| 27 Nis  | M09 | UART Faz 2 (gerc0ek HW) |
-| 27 Nis  | M10 | FPGA Top-Level Wrapper |
+| 26 Nis  | M07 | OBI SVA Protocol Check |
+| 27 Nis  | M08 | Comprehensive self-checking test |
+| 27 Nis  | M09 | UART Faz 2 (gercek HW) |
+| 27 Nis  | M10 | FPGA Top-Level Wrapper (Arty A7) |
 
-### 11.2 Kalan Is (28 Nisan - 15 Mayis 2026)
+**Faz 2 - Cevre Birimleri (28 Nisan - 3 Mayis, M11-M16):**
 
-**Hafta 1 sonu (28 Nis - 1 May):**
-- DTR sablon hazirligi (M11 - bu doküman)
-- Memory map ONTR-aynisi (opsiyonel)
-- I2C Master iskelet (opsiyonel)
+| Tarih   | Milestone | Aciklama |
+|---------|-----------|----------|
+| 28 Nis  | M11 | DTR sablon hazirligi |
+| 29 Nis  | M12 | YZ Hizlandirici planlama |
+| 1 May   | M13 | Mimari diyagram (Mermaid) |
+| 1 May   | M14 | I2C Master iskelet |
+| 2 May   | M15 | I2C Master tam implementasyon |
+| 3 May   | M16 | Sartname yeniden okuma - AXI4-Lite gerekli tespit edildi |
 
-**Hafta sonu (3-4 May):**
-- Umur Bugra ile FPGA Vivado sentez denemesi
-- Sentez raporu DTR'ye eklenir
+**Faz 3 - AXI4-Lite Gec0is (3-5 Mayis, M17-M23):**
 
-**Hafta 2 (5-8 May):**
-- YZ MAC iskelet (M12, opsiyonel)
-- Mimari diyagrami cizimi
-- DTR rapor icerigi doldurma
+| Tarih   | Milestone | Aciklama |
+|---------|-----------|----------|
+| 3 May   | M17 | obi_to_axi_lite Bridge (12/12 PASS) |
+| 3 May   | M18 | ram_axi.sv parametreli (4/4 PASS) |
+| 3 May   | M19 | gpio_axi.sv 32-bit EK-2 (5/5 PASS) |
+| 3 May   | M20 | timer_axi.sv 8 yazmac EK-2 (5/5 PASS) |
+| 3 May   | M21 | uart_axi.sv (6/6 PASS, 'A' ekranda) |
+| 3 May   | M22 | i2c_master_axi.sv (5/5 PASS, 415 satir) |
+| 3 May   | M23 | AXI Protocol Check (5 SVA, 63 handshake/0 FAIL) |
 
-**Hafta 3 (9-15 May):**
-- DTR rapor son hali
-- Ekran goruntuleri
-- Final commit + push
-- 15 May 17:00 teslim
+**Faz 4 - DTR Hazirlik + Bonus (5-7 Mayis, M24-M33):**
 
-### 11.3 Kalan Olcumler
+| Tarih   | Milestone | Aciklama |
+|---------|-----------|----------|
+| 5 May   | M24 | DTR rapor AXI sonuclari ile guncellendi |
+| 5 May   | M25 | 6 simulator screenshot |
+| 5 May   | M26 | README.md kapsamli yenileme (421 satir) |
+| 7 May   | M27 | DTR Bolum 10, 13 guncelleme |
+| 7 May   | M28 | GitHub + git tag screenshot, tag annotated |
+| 7 May   | M29 | **Boot ROM** (ram_axi.sv yeniden kullanim, 6/6 PASS) |
+| 7 May   | M30 | DTR Memory Map OTR uyumlu (1127 satir) |
+| 7 May   | M31 | **Dual UART** (uart_axi.sv 2 instance, 'U' 'S' '1') |
+| 7 May   | M32 | DTR UART-1 M31 OK guncelleme |
+| 7 May   | M33 | UART-dual + Lint screenshots (10 gorsel kanit) |
 
-- DTR rapor doldurma sayfa sayisi: ~30-40 (sablon + icerik)
-- Mevcut milestone dokumanlari: 9 dosya, ~2000 satir
-- Mevcut ekran goruntuleri: 0 (hafta 2'de cekilecek)
-- Mevcut diyagrami: 0 (hafta 2'de cekilecek)
+### 11.2 Kalan Is (8-15 Mayis 2026)
+
+DTR teslimine **8 gun** kaldi. Plan asagidaki sekilde organize edildi:
+
+| Tarih | Is | Sure | Sorumlu | Onem |
+|-------|-----|------|---------|------|
+| 8 May Cuma | Vivado randevu (Umur'a yaz) | 30 dk | Betul | Orta |
+| 8 May Cuma | Mermaid -> PNG donusumu | 30-60 dk | Betul | Orta |
+| **9-10 May Hafta sonu** | **Vivado sentez seansi** | **2 saat** | **Umur + Betul** | **KRITIK** |
+| 11 May Pzt | DTR Bolum 9 (FPGA) Vivado sonuclari ile guncelle | 1 saat | Betul | Yuksek |
+| 11 May Pzt | DTR Bolum 4 (Modul Detaylari) Boot ROM + Dual UART ekle | 45 dk | Betul | Yuksek |
+| 12 May Sal | DTR Bolum 6 (Dogrulama Metodolojisi) AXI Protocol Check | 30 dk | Betul | Orta |
+| 12 May Sal | DTR Bolum 8 (Karsilasilan Zorluklar) AXI gec0is hikayesi | 30 dk | Betul | Orta |
+| 13 May Car | DTR PDF uretimi (pandoc, A4, 11 punto Calibri, 1.15 satir) | 4 saat | Betul | KRITIK |
+| 14 May Per | Format kontrol + sayfa sayisi (max 30) | 4 saat | Betul | KRITIK |
+| **15 May Cum 17:00** | **DTR TESLIM** | - | - | - |
+
+**Hafta sonu Vivado seansi cok kritik:**
+- Sentez raporu DTR Bolum 9 icin gerekli
+- Sartname §3.2.2 zorunlu (sentez sonuclari)
+- Sartname §5.2 #1 minimum kriter (FPGA + 2 cevre birim)
+- 3 yeni screenshot beklenen (sentez, kaynak kullanim, timing)
+
+### 11.3 Final Donemi (16 Mayis - 31 Temmuz 2026)
+
+DTR sonrasi Final teslim donemi 11 hafta. Plan:
+
+| Donem | Is | Sure |
+|-------|-----|------|
+| 16-31 May | Faz 7: soc_top tam AXI4-Lite entegrasyon | 2 hafta |
+| 1-21 Haz | YZ Hizlandirici (TFLite Micro Speech Tiny Conv, MAC + FSM + CSR + 30 KB SRAM) | 3 hafta |
+| 22 Haz - 5 Tem | QSPI Master (x1/x2/x4) + UART RX + UVM Agent | 2 hafta |
+| 6-20 Tem | GDSII akisi (Sky130 + OpenLane veya Synopsys DC) | 2 hafta |
+| 21-30 Tem | Final test + dokumantasyon + demo hazirligi | 1.5 hafta |
+| **31 Tem 17:00** | **FINAL TESLIM** | - |
+
+**Opsiyonel bonus:** JTAG Debug Modulu (pulp-platform/riscv-dbg, +3 puan) - 
+zaman izin verirse Haziran sonunda eklenebilir.
+
+### 11.4 Kalan Olcumler (Sayisal Ozet)
+
+DTR donemi sonu (7 Mayis 2026):
+
+| Metrik | Mevcut | Hedef (15 May) |
+|--------|--------|----------------|
+| RTL modul | 13 (5 AXI4-Lite slave) | 13 (degismeyecek) |
+| Testbench | 11 | 11 |
+| AXI fonksiyonel test | 49 PASS | 49 |
+| AXI Protocol Check | 106 handshake, 0 FAIL | 106+ |
+| Lint warning/error | 0/0 | 0/0 |
+| DTR raporu | 1127 satir | ~1300 satir |
+| Sayfa (PDF) | - (henuz uretilmedi) | <30 (sartname siniri) |
+| Ekran goruntusu | 10 | 13 (Vivado +3) |
+| Mermaid diyagrami | 3 (.md icinde) | 3 PNG |
+| GitHub commit | 48 | ~55 |
 
 ---
-
 ## 12. Risk Analizi
 
 Bu bolum sartname Sunum Puani kriteri geregi, eksiklerin acik bir 
