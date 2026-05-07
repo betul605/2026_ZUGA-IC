@@ -279,85 +279,200 @@ PASS, 3'u Final donemine planlandi.
 
 ## 4. Modul Detaylari
 
-[KAYNAK: M01-M10 dokumanlari]
+ZUGA-IC SoC tasarimi 13 RTL modul icermektedir: 7 OBI tabanli (eski) + 
+6 AXI4-Lite tabanli (M17-M22). AXI4-Lite gec0isi sirasinda eski 
+modullerin yerine yenileri yazilmistir; eski OBI moduller referans 
+olarak repository'de korunmaktadir.
 
 ### 4.1 CV32E40P Cekirdek (M01)
 
-CV32E40P, OpenHW Group tarafindan gelistirilen 32-bit RISC-V cekirdegi-
-dir (kaynak: github.com/openhwgroup/cv32e40p). Tasarimimizda
-cv32e40p_top yerine cv32e40p_core dogrudan kullanilmistir; sebep,
-top-level'in fpnew_pkg (FPU wrapper) bagimliligi getirmesi ve bizim
-hedefimizin FPU=0 olmasi.
+CV32E40P, OpenHW Group tarafindan gelistirilen 32-bit RISC-V cekirdegidir 
+(kaynak: github.com/openhwgroup/cv32e40p, Apache 2.0 lisansi).
 
 **Pipeline ve Komut Seti:**
 
-- 32-bit RISC-V (RV32IM_Zicsr)
-- 4 stage in-order pipeline
-- IF / ID / EX / WB
-- FPU = 0 (int8 hedefi)
-- OBI master (instr + data)
+- 32-bit RISC-V (RV32IMC + Zicsr)
+- 4-stage in-order pipeline (IF/ID/EX/WB)
+- FPU = 0 (alan + guc tasarrufu, int8 YZ hedefi)
+- OBI master (instruction + data)
 
-Faz 1 entegrasyonu: cv32e40p_core (top degil), APU tie-off,
-fpnew_pkg bagimliligi giderildi.
+Cekirdek SystemVerilog ile yazilmis olup degistirilmeden kullanilmistir.
 
-### 4.2 RAM Modulu (M01, M05)
+### 4.2 OBI -> AXI4-Lite Kopru Modulu (M17)
 
-[KAYNAK: rtl/ram.sv (82 satir)]
+[KAYNAK: rtl/obi_to_axi_lite.sv, 200 satir]
 
-- Dual-port (instruction + data)
-- Parametreli: SIZE_WORDS, MEM_FILE
-- 2 instance: IRAM (program) + DRAM (veri)
-- $readmemh ile baslangic yuklemesi
+CV32E40P sadece OBI master uretir; sartname AXI4-Lite zorunlu kilar. 
+Bu yuzden ozel bir kopru (Bridge) modulu yazildi.
 
-### 4.3 UART Modulu (M06, M09)
+**Mimari:** 6-durumlu state machine (IDLE -> AW -> W -> B yazma, 
+IDLE -> AR -> R okuma). OBI req/gnt el sikismasi -> AXI VALID/READY 
+el sikismasi. byte_enable -> wstrb donusumu.
 
-[KAYNAK: rtl/uart.sv (195 satir)]
+**Test sonucu (M17):** 12/12 transaction PASS, 0 hata.
 
-EK-2 yazmac haritasi:
-- 0x00 CPB (clock-per-bit)
-- 0x04 STP (stop bit)
-- 0x08 RDR (RX data, Faz 3)
-- 0x0C TDR (TX data)
-- 0x10 CFG (TX_EN, RX_DONE, TX_DONE)
+### 4.3 ram_axi.sv - Parametreli Bellek (M18, M29)
 
-Faz 2 (M09): 10-bit TX state machine, baud rate generator,
-sentezlenebilir tx_o pin.
+[KAYNAK: rtl/ram_axi.sv, 152 satir]
 
-### 4.4 GPIO Modulu (M03)
+Bu modul **muhendislik zarafeti** ilkesi geregi 3 farkli kullanim 
+senaryosuna ayni RTL ile hizmet eder.
 
-[KAYNAK: rtl/gpio.sv (76 satir)]
+| Parametre | IRAM | DRAM | Boot ROM (M29) |
+|-----------|------|------|----------------|
+| SIZE_WORDS | 2048 | 2048 | 128 |
+| Boyut | 8 KB | 8 KB | 512 B |
+| WRITE_ENABLE | 1 | 1 | 0 (read-only) |
+| MEM_FILE | program.hex | bos | bootloader.hex |
+| Adres | 0x0001_0000 | 0x0002_0000 | 0x0000_0000 |
 
-- 16-bit input + 16-bit output
-- IDR (input data register)
-- ODR (output data register)
+**State machine:** 4 durum (IDLE/WRITE/READ/RESP). Read-only modda 
+WRITE_ENABLE=0, AWREADY ve WREADY hep 0 kalir.
 
-### 4.5 Timer Modulu (M04)
+**Test sonuclari:**
+- M18 (IRAM/DRAM): 4/4 PASS
+- M29 (Boot ROM): 6/6 PASS, 12 AXI handshake, 0 FAIL
 
-[KAYNAK: rtl/timer.sv (63 satir)]
+**Sartname uyumu:** §4.1 AXI4-Lite slave, §4.2.2.1 Boot vektoru 0x00 
+512 B, OTR Tablo 1 birebir uyum.
 
-- 32-bit sayici
-- CLR (clear)
-- ENA (enable)
-- CNT (count, read-only)
+### 4.4 gpio_axi.sv - GPIO 32-bit (M19)
 
-### 4.6 SoC Top (M02)
+[KAYNAK: rtl/gpio_axi.sv, 142 satir]
 
-[KAYNAK: rtl/soc_top.sv (281 satir)]
+EK-2 yazmac haritasi (8 byte):
 
-- 5-slave OBI decoder
-- Select latch pattern
-- 6 instance (RAM x2, UART, GPIO, Timer)
-- gpio_in_i, gpio_out_o, uart_tx_o portlari
+| Offset | Yazmac | Tip | Aciklama |
+|--------|--------|-----|----------|
+| 0x00 | GPIO_IDR | RO | Input Data Register (16-bit) |
+| 0x04 | GPIO_ODR | RW | Output Data Register (16-bit) |
 
-### 4.7 FPGA Top (M10)
+**Pin sayisi:** 16 giris + 16 cikis = 32 pin (sartname uyumu).
 
-[KAYNAK: rtl/fpga_top.sv (87 satir)]
+**Test sonucu (M19):** 5/5 PASS, 0 hata.
 
-- 100 MHz -> 50 MHz clock divider
-- Reset senkronizator + debounce
-- Pin yonlendirme (LED, switch, UART)
+### 4.5 timer_axi.sv - 32-bit Timer (M20)
 
----
+[KAYNAK: rtl/timer_axi.sv, ~230 satir]
+
+EK-2 yazmac haritasi (32 byte, 8 yazmac):
+
+| Offset | Yazmac | Aciklama |
+|--------|--------|----------|
+| 0x00 | TIM_PRE | Prescaler (16-bit) |
+| 0x04 | TIM_ARE | Auto-Reload (32-bit) |
+| 0x08 | TIM_CLR | Clear bit |
+| 0x0C | TIM_ENA | Enable bit |
+| 0x10 | TIM_MOD | Mod (yukari/asagi) |
+| 0x14 | TIM_CNT | Sayac (RO, 32-bit) |
+| 0x18 | TIM_EVN | Olay sayaci (RO) |
+| 0x1C | TIM_EVC | Olay sayisi (RO) |
+
+**Test sonucu (M20):** 5/5 PASS, 0 hata.
+
+### 4.6 uart_axi.sv - UART (M21, M31)
+
+[KAYNAK: rtl/uart_axi.sv, ~265 satir]
+
+Bu modul **iki ayri instance** ile sartname §4.2.2 "2x UART" 
+gereksinimini karsilar (M31).
+
+EK-2 yazmac haritasi (20 byte, 5 yazmac):
+
+| Offset | Yazmac | Tip | Aciklama |
+|--------|--------|-----|----------|
+| 0x00 | UART_CPB | RW | Clock-Per-Bit (baud) |
+| 0x04 | UART_STP | RW | Stop Bit |
+| 0x08 | UART_RDR | RO | RX Data (Final donem) |
+| 0x0C | UART_TDR | WO | TX Data |
+| 0x10 | UART_CFG | RW | TX_EN, RX_DONE, TX_DONE |
+
+**Iki instance konfigurasyonu:**
+
+| Instance | Adres | Amac |
+|----------|-------|------|
+| u_uart0 | 0x4000_2000 | Genel kullanim (M21) |
+| u_uart1 | 0x4000_3000 | YZ Stream (M31) |
+
+**TX state machine:** 10-bit frame (1 start + 8 data + 1 stop). 
+Baud rate generator UART_CPB yazmaci ile programlanabilir.
+
+**Test sonuclari:**
+- M21 (UART-0 tek instance): 6/6 PASS, 'A' karakteri ekranda
+- M31 (UART-0 + UART-1 dual): 6/6 PASS, 'U' 'S' '1' ekranda, 
+  38 AXI handshake, 0 FAIL
+
+### 4.7 i2c_master_axi.sv - I2C Master (M22)
+
+[KAYNAK: rtl/i2c_master_axi.sv, 415 satir]
+
+EK-2 yazmac haritasi (20 byte, 5 yazmac):
+
+| Offset | Yazmac | Aciklama |
+|--------|--------|----------|
+| 0x00 | I2C_NBY | Byte Sayisi (1-4) |
+| 0x04 | I2C_ADR | 7-bit Slave Adresi |
+| 0x08 | I2C_RDR | RX Data (RO) |
+| 0x0C | I2C_TDR | TX Data (WO) |
+| 0x10 | I2C_CFG | START, R/W, BUSY, ACK |
+
+**State machine:** 10 durum (IDLE/START/ADDR/ACK1/WRITE/READ/ACK2/
+STOP). 400 kHz sabit SCL (sartname zorunlu).
+
+**Test sonucu (M22):** 5/5 PASS, 0 hata.
+
+### 4.8 AXI Protocol Check (M23)
+
+[KAYNAK: tb/axi_lite_assertions.sv, ~145 satir]
+
+**Sartname §5.2 minimum kriter #3'e dogrudan karsilik geliyor.**
+
+**5 SVA assertion:**
+1. AW handshake stability
+2. W handshake stability
+3. B response stability
+4. AR handshake stability
+5. R response stability
+
+**5 coverage counter** (handshake sayilarini izler).
+
+**Bind ile aktif:** 3 modulde (RAM, GPIO, Timer) + Boot ROM + 
+Dual UART (her biri 2 instance) = toplam 7 instance.
+
+**Test sonuclari:**
+- M23 (RAM/GPIO/Timer): 63 handshake, 0 ASSERT FAIL
+- M29 (Boot ROM): 12 handshake, 0 FAIL
+- M31 (Dual UART): 38 handshake, 0 FAIL
+- **TOPLAM: 113 handshake, 0 ASSERT FAIL**
+
+### 4.9 SoC Top ve FPGA Top
+
+**soc_top.sv (eski OBI, 320 satir):** Mevcut soc_top OBI bus ile 
+yazilmistir (M02). AXI4-Lite slave'ler tum bagimsiz testlerden 
+gec0tigi icin (49 transaction PASS, 0 hata), tam soc_top entegrasyonu 
+**Faz 7 olarak Final donemine** ertelendi (16-31 May).
+
+**fpga_top.sv (87 satir, M10):**
+- 100 MHz osilator -> /2 divider -> 50 MHz core clock
+- Reset senkronizator (2-flop) + 16-bit debounce
+- 14 pin atamasi (clock + reset + UART_TX + 4 LED + 4 switch + 
+  I2C SCL/SDA)
+
+**FPGA hedef platformu:** Xilinx Arty A7-100T (XC7A100T), 101.440 LUT, 
+135 BRAM (OTR Tablo 2 uyumu).
+
+### 4.10 Muhendislik Zarafeti Ozeti
+
+DTR donemi boyunca iki onemli yeniden kullanim ornegi:
+
+| Modul | Kullanim Sayisi | Yeni RTL? |
+|-------|-----------------|-----------|
+| ram_axi.sv | 3 (IRAM, DRAM, Boot ROM) | HAYIR (M29) |
+| uart_axi.sv | 2 (UART-0, UART-1) | HAYIR (M31) |
+
+Bu yaklasim yeni RTL bug riskini sifirlar, dogrulama yukunu azaltir, 
+lint warning sayisini dusurur (0 warning), OTR §3.6 "moduler hiyerarsi" 
+ilkesi ile uyumlu.
 
 ## 5. Tasarim Kararlari ve Rasyonel
 
