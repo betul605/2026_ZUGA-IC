@@ -565,51 +565,132 @@ Pratik kisitlamalar (M07):
 
 ## 6. Doğrulama Metodolojisi
 
-[KAYNAK: M07, M08]
+DTR donemi boyunca dogrulama metodolojisi **dort katmanli yapida** 
+yurutuldu. Sartname §5.2 minimum kriter #2 (self-checking test) ve 
+#3 (AXI/AXI-Lite Protocol Check) dogrudan bu metodoloji ile karsilandi.
 
-### 6.1 Yaklasim
+### 6.1 Dogrulama Felsefesi
 
-3 katmanli doğrulama:
+ZUGA-IC takimi DTR doneminde **bagimsiz modul testbench** stratejisini 
+benimsedi. Her AXI4-Lite slave modul, soc_top entegrasyonu beklemeden, 
+kendi testbench'inde dogrulandi.
 
-1. **Self-checking test programlari** (assembly): Her modulu kendi
-   senaryosunda test eder, PASS/FAIL c0ikti uretir.
+**Avantajlar:**
+- Modul bazinda hata bulma (debug suresi minimum)
+- Regresyon testi hizli (her modul ~1-3 saniye simule olur)
+- soc_top entegrasyonu Faz 7 olarak Final donemine ertelenebildi
+- 49 transaction PASS + 113 handshake birikti, 0 hata
 
-2. **OBI protocol assertion'lari** (M07): bind ile testbench'ten
-   bus kurallari kontrol edilir; her cycle aktif.
+**Dort katman:**
+1. Self-checking test programlari (assembly, RV32IMC)
+2. Bagimsiz modul testbench'leri (SystemVerilog 2017)
+3. AXI4-Lite Protocol Check (5 SVA + bind)
+4. Lint ve Static Analysis (Verilator -Wall)
 
-3. **Coverage sayaclari** (M08): DATA + INSTR bus aktivitesi
-   sayilir, DTR raporuna metrik olarak girer.
+### 6.2 Self-Checking Test Programlari
 
-### 6.2 Test Programlari
+Cekirdek-cevre birim entegrasyonu icin 4 RV32IMC assembly programi 
+yazildi. Her program PASS/FAIL ciktisi uretir.
 
-| Test       | Modul Kapsami | Self-Check | DATA islemleri |
-|------------|---------------|------------|----------------|
-| hello.S    | UART          | UART output | 3 yazma |
-| test_gpio.S| GPIO + UART   | beq ile    | 5 islem |
-| test_timer.S| Timer + UART | beq ile    | 5 islem |
-| test_full.S| 3 modul + 5 yazmac | beq + bne | 17 islem |
+| Test         | Kapsam | Boyut |
+|--------------|--------|-------|
+| hello.S | UART TX, Pipeline isinma | 23 satir |
+| test_gpio.S | GPIO + UART, beq | 76 satir |
+| test_timer.S | Timer + UART, beq | 89 satir |
+| test_full.S | 3 modul + 5 yazmac | 145 satir |
+| bootloader.S | Boot ROM, lui+jr (M29) | 46 satir |
 
-### 6.3 Protocol Check (M07)
+**Toplam:** 5 program, 379 satir assembly, hepsi PASS.
 
-- 3 SVA-benzeri kural (Verilator-uyumlu always_ff)
-- 2 instance: DATA bus + INSTR bus
-- bind ile RTL'den bagimsiz
-- 0 ASSERT FAIL (tum testlerde)
+### 6.3 Bagimsiz Modul Testbench'leri
 
-### 6.4 Coverage (M08)
+11 testbench dosyasi tb/ klasorunde. Her biri belirli modul/grubu 
+hedefler ve kendi build script'i ile cagrilir.
 
-Karsilastirma tablosu:
+| Testbench | Modul | Test Sayisi | Sonuc |
+|-----------|-------|-------------|-------|
+| obi_to_axi_lite_tb.sv | Bridge (M17) | 12 | PASS |
+| ram_axi_tb.sv | IRAM/DRAM (M18) | 4 | PASS |
+| boot_rom_axi_tb.sv | Boot ROM (M29) | 6 | PASS |
+| gpio_axi_tb.sv | GPIO (M19) | 5 | PASS |
+| timer_axi_tb.sv | Timer (M20) | 5 | PASS |
+| uart_axi_tb.sv | UART tek (M21) | 6 | PASS |
+| uart_dual_axi_tb.sv | Dual UART (M31) | 6 | PASS |
+| i2c_master_axi_tb.sv | I2C (M22) | 5 | PASS |
 
-| Test       | DATA Read | DATA Write | INSTR Fetch |
-|------------|-----------|------------|-------------|
-| hello      | 0         | 3          | ~10         |
-| test_gpio  | 1         | 4          | ~30         |
-| test_timer | 1         | 4          | ~50         |
-| test_full  | 4         | 13         | 999         |
+**Toplam: 49 fonksiyonel transaction PASS, 0 hata.**
 
-Maximum coverage: test_full.S (3.4x daha cok DATA aktivitesi)
+Her testbench su yapida:
+- AXI4-Lite signal port'lari
+- Reset + clock generator (10 ns periot, 100 MHz)
+- axi_write ve axi_read task'lari
+- Test senaryolari (write, read, edge cases)
+- Watchdog timeout (sonsuz loop koruma)
 
----
+### 6.4 AXI4-Lite Protocol Check (M23)
+
+[KAYNAK: tb/axi_lite_assertions.sv, ~145 satir]
+
+**Sartname §5.2 minimum kriter #3 dogrudan karsilik:**
+"AXI/AXI-Lite protokol check (UVM agent veya SVA ile)"
+
+ZUGA-IC takimi SVA yaklasimini sectigi sebepleri:
+- DTR doneminde UVM ortami kurma maliyeti yuksek
+- SVA ile bind kullanimi yeterli (sartname kabul ediyor)
+- Verilator -Wall ile lint dogrulamasi mumkun
+- UVM agent Final donemine planli
+
+**5 SVA Property:**
+1. AW handshake stability: AWVALID && !AWREADY -> AWVALID stable
+2. W handshake stability: WVALID && !WREADY -> WVALID stable
+3. B response stability: BVALID && !BREADY -> BVALID stable
+4. AR handshake stability: ARVALID && !ARREADY -> ARVALID stable
+5. R response stability: RVALID && !RREADY -> RVALID stable
+
+**5 Coverage Counter:** Basarili handshake'leri sayar (aw/w/b/ar/r 
+counter'lari).
+
+**Bind ile aktif edilme:**
+- ram_axi modulune bind (M23, M29)
+- gpio_axi modulune bind (M23)
+- timer_axi modulune bind (M23)
+- uart_axi modulune bind (M31'de 2 instance)
+
+**Toplam test sonuclari:**
+- M23 (RAM/GPIO/Timer): 63 handshake, 0 ASSERT FAIL
+- M29 (Boot ROM): 12 handshake, 0 FAIL
+- M31 (Dual UART): 38 handshake, 0 FAIL
+- **TOPLAM: 113 handshake, 0 ASSERT FAIL**
+
+### 6.5 Lint ve Static Analysis
+
+Verilator -Wall ile tum AXI4-Lite modulleri kontrol edildi:
+
+| Modul | Warning | Error |
+|-------|---------|-------|
+| obi_to_axi_lite.sv | 0 | 0 |
+| ram_axi.sv | 0 | 0 |
+| gpio_axi.sv | 0 | 0 |
+| timer_axi.sv | 0 | 0 |
+| uart_axi.sv | 0 | 0 |
+| i2c_master_axi.sv | 0 | 0 |
+
+**Sonuc: 6 AXI4-Lite modulu, 0 warning, 0 error.**
+
+Kanit: docs/screenshots/10_lint_clean.png (M33)
+
+### 6.6 Sartname Uyumu Ozeti
+
+| Sartname Maddesi | Karsilik |
+|------------------|----------|
+| §5.2 #2 Self-checking test | KARSILANDI (5 SW, hepsi PASS) |
+| §5.2 #3 AXI Protocol Check | KARSILANDI (5 SVA + bind, 113 handshake, 0 FAIL) |
+| §3.2.2 Test durum dokumu | VAR (Bolum 7 + 10 screenshot) |
+| §3.2.2 Coverage raporlari | VAR (handshake sayilari, Bolum 7) |
+| §3.2.2 Ekran goruntuleri | VAR (docs/screenshots/, 10 PNG) |
+
+Detayli test sonuclari ve handshake dokumu Bolum 7 (Dogrulama 
+Sonuclari) bolumunde sunulmustur.
 
 ## 7. Doğrulama Sonuclari
 
