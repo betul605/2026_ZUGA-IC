@@ -841,9 +841,9 @@ Kanit: docs/screenshots/10_lint_clean.png (M33)
 |------------------|----------|
 | §5.2 #2 Self-checking test | KARSILANDI (5 SW, hepsi PASS) |
 | §5.2 #3 AXI Protocol Check | KARSILANDI (5 SVA + bind, 113 handshake, 0 FAIL) |
-| §3.2.2 Test durum dokumu | VAR (Bolum 7 + 10 screenshot) |
-| §3.2.2 Coverage raporlari | VAR (handshake sayilari, Bolum 7) |
-| §3.2.2 Ekran goruntuleri | VAR (docs/screenshots/, 10 PNG) |
+| §3.2.2 Test durum dokumu | VAR (Bolum 7 + 11 screenshot + run_regression.sh) |
+| §3.2.2 Coverage raporlari | VAR (handshake + docs/COVERAGE_RAPORU.md, %82 line/%75 toggle) |
+| §3.2.2 Ekran goruntuleri | VAR (docs/screenshots/, 11 PNG) |
 
 Detayli test sonuclari ve handshake dokumu Bolum 7 (Dogrulama 
 Sonuclari) bolumunde sunulmustur.
