@@ -248,6 +248,10 @@ tamamlandi**; geri kalan %8 Final donemine planlandi.
 
 ## 3. Sistem Mimarisi
 
+**Sekil 1:** Sistem genel mimarisi (CV32E40P + Bridge + 5 AXI4-Lite Slave + 
+Boot ROM + Dual UART + Protocol Check) `docs/screenshots/12_diagram_system.png` 
+dosyasinda gorsellestirilmistir.
+
 [KAYNAK: ONTR + tum milestone'lar]
 
 ### 3.1 Genel Blok Diyagrami
@@ -357,6 +361,10 @@ PASS, 3'u Final donemine planlandi.
 
 ## 4. Modul Detaylari
 
+**Sekil 2:** RTL modul hiyerarsisi (soc_top -> Bridge + 5 Slave + Protocol 
+Check, ram_axi'nin 3 amaca hizmet etmesi, uart_axi'nin 2 instance'i) 
+`docs/screenshots/13_diagram_modules.png` dosyasinda detayli sunulmustur.
+
 ZUGA-IC SoC tasarimi 13 RTL modul icermektedir: 7 OBI tabanli (eski) + 
 6 AXI4-Lite tabanli (M17-M22). AXI4-Lite gec0isi sirasinda eski 
 modullerin yerine yenileri yazilmistir; eski OBI moduller referans 
@@ -390,6 +398,11 @@ el sikismasi. byte_enable -> wstrb donusumu.
 **Test sonucu (M17):** 12/12 transaction PASS, 0 hata.
 
 ### 4.3 ram_axi.sv - Parametreli Bellek (M18, M29)
+
+**Sekil 4:** Boot sequence akisi (Power-On -> Boot ROM 0x00 -> lui+jr -> 
+IRAM 0x10000 -> Cevre birim erisimi) `docs/screenshots/15_diagram_boot_sequence.png` 
+dosyasinda gorsellestirilmistir.
+
 
 [KAYNAK: rtl/ram_axi.sv, 152 satir]
 
@@ -784,6 +797,11 @@ Her testbench su yapida:
 - Watchdog timeout (sonsuz loop koruma)
 
 ### 6.4 AXI4-Lite Protocol Check (M23)
+
+**Sekil 3:** AXI4-Lite handshake akisi (yazma 3 kanal AW+W+B, okuma 2 kanal 
+AR+R, her birinde Protocol Check stability assertion) 
+`docs/screenshots/14_diagram_axi_handshake.png` dosyasinda gorsellestirilmistir.
+
 
 [KAYNAK: tb/axi_lite_assertions.sv, ~145 satir]
 
