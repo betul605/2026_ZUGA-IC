@@ -424,6 +424,25 @@ WRITE_ENABLE=0, AWREADY ve WREADY hep 0 kalir.
 - M18 (IRAM/DRAM): 4/4 PASS
 - M29 (Boot ROM): 6/6 PASS, 12 AXI handshake, 0 FAIL
 
+**Bootloader Dogrulamasi (Compile-Time + Run-Time):**
+
+Boot ROM icerisindeki bootloader kodu iki farkli seviyede dogrulandi:
+
+1. **Compile-time:** riscv-none-elf-objdump -d sw/bootloader.elf ile 
+   makine kodu uretildi. Anahtar komutlar:
+   - 0x08: 62c1 lui t0, 0x10 -> t0 = 0x0001_0000 (IRAM adresi)
+   - 0x0e: 8282 jr  t0       -> PC = 0x0001_0000 (IRAM'a jump)
+   - Disassembly kaniti: docs/screenshots/16_bootloader_disassembly.png
+
+2. **Run-time:** boot_rom_axi_tb.sv testbench ayni adreslerden okuma 
+   yapip beklenen makine kodunu dogrulamistir:
+   - Test 2: 0x0008 oku -> 0x000162c1 (PASS, lui kodu)
+   - Test 3: 0x000C oku -> 0x82820001 (PASS, jr t0 kodu)
+
+Bu cift dogrulama, bootloader'in OTR §3.5 ve sartname §4.2.2.1 
+gereksinimlerini hem derleme hem simulasyon seviyesinde karsiladigini 
+gosterir.
+
 **Sartname uyumu:** §4.1 AXI4-Lite slave, §4.2.2.1 Boot vektoru 0x00 
 512 B, OTR Tablo 1 birebir uyum.
 
