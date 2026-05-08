@@ -1282,8 +1282,8 @@ Sartnamede tanimli 5 minimum odul kriterinden DTR donemi sonu durumu:
 | # | Kriter | DTR Durumu | Final Hedefi |
 |---|--------|------------|--------------|
 | 1 | FPGA + 2 cevre birim | RTL hazir, **9-10 May Vivado sentez** planlandi | Bitstream + canli demo |
-| 2 | Self-checking test | **KARSILANDI** (4 test, hepsi PASS) | Daha kapsamli regression |
-| 3 | AXI/AXI-Lite Protocol Check | **KARSILANDI** (5 SVA, 63 handshake, 0 FAIL) | UVM agent eklenmesi |
+| 2 | Self-checking test | **KARSILANDI** (5 SW PASS + run_regression.sh 8/8 PASS) | UVM coverage collector |
+| 3 | AXI/AXI-Lite Protocol Check | **KARSILANDI** (5 SVA, **117 handshake**, 0 FAIL) | UVM agent eklenmesi |
 | 4 | YZ test | Plan (Final donem) | Tam YZ hizlandirici (TFLite Tiny) |
 | 5 | GDSII | Plan (Final donem) | Sky130 + OpenLane akis |
 
@@ -1302,6 +1302,11 @@ tamamlanacak (Vivado), 2 kriter Final teslimi icin planlandi.**
 | test_gpio.S | GPIO write+read+kontrol | "P\n" | PASS |
 | test_timer.S | Timer CLR+ENA+CNT+kontrol | "T\n" | PASS |
 | test_full.S | 3 modul + 5 yazmac regression | "RUN\nPASS\n" | PASS |
+| **bootloader.S (M29)** | **Boot ROM, lui+jr IRAM jump** | **0x10000 jump (disassembly)** | **PASS** |
+
+**Otomatik regression:** `run_regression.sh` (M41) ile tek komutla 
+8 testbench dogrulamasi (49 transaction, 113 handshake, 8/8 PASS). 
+Kanit: docs/screenshots/11_regression_passed.png
 
 Tum testler conditional branch (beq) ile basari/basarisizlik dali 
 ayrimi yapar, jurinin "self-checking" tanimini birebir karsilar.
@@ -1324,17 +1329,23 @@ Bu kriter SVA (SystemVerilog Assertions) yontemi ile karsilandi:
 4. AR (Read Address) handshake stability - ARVALID dustu mu ARREADY'siz?
 5. R (Read Response) stability - RVALID + RDATA + RRESP degisti mi?
 
-**3 modulde bind ile bagli:**
+**6 modul instance'inda bind ile bagli (M23, M29, M31):**
 
 | Modul | AW | W | B | AR | R | FAIL |
 |-------|----|----|----|----|----|------|
-| ram_axi | 4 | 4 | 4 | 4 | 4 | 0 |
-| gpio_axi | 2 | 2 | 2 | 3 | 3 | 0 |
-| timer_axi | 7 | 7 | 7 | 5 | 5 | 0 |
-| **TOPLAM** | **13** | **13** | **13** | **12** | **12** | **0** |
+| ram_axi (M23) | 4 | 4 | 4 | 4 | 4 | 0 |
+| boot_rom_axi (M29) | 0 | 0 | 0 | 6 | 6 | 0 |
+| gpio_axi (M23) | 2 | 2 | 2 | 3 | 3 | 0 |
+| timer_axi (M23) | 7 | 7 | 7 | 5 | 5 | 0 |
+| uart_axi-0 (M31) | 6 | 6 | 6 | 5 | 5 | 0 |
+| uart_axi-1 (M31) | 4 | 4 | 4 | 1 | 1 | 0 |
+| **TOPLAM** | **23** | **23** | **23** | **24** | **24** | **0** |
 
-**Toplam: 63 handshake gozlemi, 5 × 63 = 315 kural degerlendirmesi, 
+**Toplam: 117 handshake gozlemi, 5 × 117 = 585 kural degerlendirmesi, 
 0 ASSERT FAIL.**
+
+**Coverage detayi:** docs/COVERAGE_RAPORU.md (M42, 199 satir manuel 
+analiz, ortalama %82 line / %75 toggle coverage).
 
 GitHub repository: tb/axi_lite_assertions.sv (145 satir, 5 SVA + 5 
 coverage counter)
@@ -1348,7 +1359,7 @@ coverage counter)
 - Sorumlu: Umur Bugra Dikmen + Betul Bedir
 - Hedef: Sentez basarili, kaynak kullanim raporu, STA sonucu
 - Sure: 1.5-2 saat
-- Sonuc: 3 yeni screenshot DTR raporuna
+- Sonuc: 3 yeni screenshot DTR raporuna (mevcut 16 -> 19 PNG)
 
 DTR'de "FPGA hazirligi tamamlandi" demek icin sentez sonucu 
 zorunludur (Sartname §3.2.2). Hafta sonu seansi sonrasi Bolum 9 
