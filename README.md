@@ -6,7 +6,7 @@ CV32E40P RISC-V çekirdeği üzerine kurulu, **AXI4-Lite tabanlı** System-on-Ch
 prototipi. Yapay zeka hızlandırıcı için altyapı hazır.
 
 [![GitHub commits](https://img.shields.io/badge/commits-39-brightgreen)]()
-[![Milestone](https://img.shields.io/badge/milestone-25-blue)]()
+[![Milestone](https://img.shields.io/badge/milestone-39-blue)]()
 [![Tests](https://img.shields.io/badge/AXI%20tests-100%2B%20PASS-success)]()
 [![Errors](https://img.shields.io/badge/errors-0-success)]()
 
@@ -24,7 +24,7 @@ prototipi. Yapay zeka hızlandırıcı için altyapı hazır.
 
 ---
 
-## Mevcut Durum (5 Mayıs 2026)
+## Mevcut Durum (7 Mayıs 2026)
 
 ### Hızlı Özet
 
@@ -61,7 +61,7 @@ prototipi. Yapay zeka hızlandırıcı için altyapı hazır.
 - **AXI Slave Bağımsız**: 25 senaryo, 37 transaction — tümü PASS
 - **AXI Protocol Check**: 5 SVA × 3 modül bind, 63 handshake — **0 FAIL**
 
-### Toplam: 100+ AXI transaction, 0 hata, 0 lint warning
+### Toplam: 162+ AXI transaction (49 fonksiyonel + 113 protocol check), 0 hata, 0 lint warning
 
 ### Şartname Uyumu
 | Madde | Durum |
@@ -119,11 +119,35 @@ Detaylı milestone raporları için: `docs/milestone_XX.md`
 
 **Faz 7 (soc_top entegrasyon)** Final teslimine ertelendi (alt-sistem testleri yeterli kanıt sağladı).
 
-### Faz 4: Doğrulama + DTR (M23-M25)
+### Faz 4: Doğrulama + DTR Birinci Dalga (M23-M26, 3-5 May)
 
 - **M23 (Faz 8)**: AXI Protocol Check — `axi_lite_assertions.sv` (5 SVA, 3 modül bind, 63 handshake / 0 FAIL)
 - **M24**: DTR rapor AXI sonuçları ile güncellendi (Bölüm 1, 7, 12 — 855→1039 satır)
 - **M25**: Test screenshot kanıtları (6 PNG + 6 TXT, `docs/screenshots/`)
+- **M26**: README.md kapsamlı yenileme (81→421 satır)
+
+### Faz 5: Boot ROM + Dual UART + DTR İkinci Dalga (M27-M39, 7 May)
+
+**13 milestone, ~10 saat çalışma, DTR raporu 855→1678 satır (%96 büyüme).**
+
+**Yeni RTL Eklemeleri (Mühendislik Zarafeti — yeni RTL yazılmadan):**
+- **M29**: Boot ROM (512 B @ 0x00) — `ram_axi.sv` parametreli yeniden kullanım, 6/6 PASS, 12 handshake
+- **M31**: Dual UART (2× UART) — `uart_axi.sv` 2 instance, 6/6 PASS, 'U' 'S' '1' ekranda, 38 handshake
+
+**DTR Rapor Güncellemeleri (12/13 bölüm tamamlandı):**
+- **M27**: Bölüm 10 (Şartname Kriterleri) + Bölüm 13 (Sonuç)
+- **M30**: Bölüm 3 (Memory Map ÖTR Tablo 1 birebir)
+- **M32**: Bölüm 3 UART-1 → M31 OK
+- **M34**: Bölüm 11 (Takvim, 4 faz, 33 milestone tablosu)
+- **M35**: Bölüm 4 (Modül Detayları, 13 RTL detay)
+- **M36**: Bölüm 6 (Doğrulama Metodolojisi, 4 katman)
+- **M37**: Bölüm 8 (Karşılaşılan Zorluklar, AXI geçiş hikayesi)
+- **M38**: Bölüm 5 (Tasarım Kararları, AXI4-Lite rasyonel)
+- **M39**: Bölüm 2 (ÖNTR Değişiklikler, OTR-DTR uyum %92)
+
+**Görsel Kanıt + GitHub:**
+- **M28**: GitHub commits + git tag screenshot, dtr-pre-axi-m17 annotated'a çevrildi
+- **M33**: UART-dual + Lint screenshots (10 görsel toplam)
 
 ---
 
