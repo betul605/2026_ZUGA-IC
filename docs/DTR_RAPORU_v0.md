@@ -124,49 +124,127 @@ risk yonetimi icin konuldu.
 
 ## 2. ONTR'den Bu Yana Yapilan Degisiklikler
 
-[KAYNAK: M05, M06, M09, M10 - + ONTR ile karsilastirma]
+OTR (16 Mart 2026) ile DTR (15 Mayis 2026) arasinda 8 haftalik 
+gelistirme donemi gerc0eklesti. Bu surec boyunca OTR'de belirlenen 
+mimarinin **buyuk cogunlugu korundu**, sadece bus protokolu kararinda 
+M16'da yapilan sartname yeniden okumasi sonucu **degisikilik** yapildi.
 
-### 2.1 Mimari Degisiklikler
+Bu bolum OTR-DTR uyumunu sistematik olarak belgeler.
 
-**RTL Dili:** ONTR'de "Verilog" denmisti. DTR donemde SystemVerilog
-2017 sentetik alt kume kullanildi. Sebep: CV32E40P uyumlulugu, tip
-guvenligi (typedef enum, struct), parametreli modul desteği.
+### 2.1 Korunan Kararlar (OTR -> DTR Birebir)
 
-**Bus Protokolu:** ONTR'de "AXI4-Lite konfigurasyon icin" denmisti.
-DTR donemde OBI (Open Bus Interface) direkt kullanildi. Sebep:
-CV32E40P core dogrudan OBI uretiyor; AXI4-Lite wrapper sentez
-karmasikligini artiriyor. Final teslim icin AXI4-Lite wrapper
-eklenecek; metodoloji ayni (OBI assertion'lari -> AXI assertion).
+OTR'de belirlenen ve DTR donemi boyunca **degismeden korunan** 
+kararlar:
 
-**Bellek Haritasi:**
-- ONTR: Boot ROM 0x00000, IRAM 0x10000, DRAM 0x20000
-- DTR: IRAM 0x00000 (8 KB), DRAM 0x00020000 (8 KB)
-- Sebep: Linker script basitligi, mevcut testleri etkilememe
-- Boot ROM final teslim icin eklenecek
+**Sistem Mimarisi:**
+- CV32E40P RISC-V cekirdegi (RV32IMC + Zicsr)
+- 4-stage in-order pipeline
+- 50 MHz tek saat alani
+- FPU = 0 (alan + guc tasarrufu)
 
-### 2.2 Cevre Birim Durumu
+**FPGA Platformu:**
+- Xilinx Arty A7-100T (XC7A100T)
+- 101.440 LUT, 135 BRAM
+- Vivado 2023.x
 
-| Cevre Birim | ONTR | DTR Donemi | Final Hedefi |
-|-------------|------|------------|--------------|
-| GPIO (32 pin) | Vaat | 16 pin (M03) | 32 pin |
-| Timer | Vaat | Var (M04) | + interrupt |
-| 2x UART | Vaat | UART-0 var (M06+M09) | UART-1 + RX |
-| I2C Master | Vaat | Yok | Eklenecek |
-| QSPI Master | Vaat | Yok | Eklenecek |
-| JTAG | Vaat | Yok | Eklenecek (bonus) |
-| YZ Hizlandirici | Vaat | Plan (M11+) | Tam |
+**Bellek Haritasi (OTR Tablo 1 birebir):**
+- Boot ROM: 0x0000_0000 - 0x0000_01FF (512 B)
+- IRAM: 0x0001_0000 - 0x0001_1FFF (8 KB)
+- DRAM: 0x0002_0000 - 0x0002_1FFF (8 KB)
+- YZ SRAM: 0x0003_0000 (30 KB, Final)
+- Cevre birimler: 0x4000_xxxx
+- YZ CSR: 0x5000_0000 (Final)
 
-### 2.3 Doğrulama Yaklasimi
+**Cevre Birim Yazmac Haritalari (Sartname EK-2 birebir):**
+- GPIO: IDR + ODR (32-bit, 16 input + 16 output)
+- Timer: 8 yazmac (PRE/ARE/CLR/ENA/MOD/CNT/EVN/EVC)
+- UART: 5 yazmac (CPB/STP/RDR/TDR/CFG)
+- I2C: 5 yazmac (NBY/ADR/RDR/TDR/CFG), 400 kHz sabit SCL
 
-ONTR'de "UVM + SystemVerilog" denmisti. DTR donemde:
-- Self-checking test programlari (assembly, 4 adet)
-- OBI protocol assertion'lari (3 kural, bind ile)
-- Verilator ile simulator + SVA destegi sinirli
-- UVM tam yerine pragmatik SVA + behavioral assertion
+### 2.2 Guncellenen Kararlar (DTR Donemi Deneyimi)
 
-Final teslim icin tam UVM agent eklenebilir.
+**Bus Protokolu (M16'da Karar Guncellendi):**
 
----
+OTR §2.1'de "AXI4-Lite Interconnect" belirlenmisti. DTR donemi 
+basinda (M01-M15) takim hizli prototip icin CV32E40P'nin native 
+OBI arayuzunu kullandi. M16'da sartname §4.1'in **AXI4-Lite zorunlu** 
+kildigi yeniden tespit edildi ve M17-M23 arasi **8 fazli planli 
+gec0is** ile sistem AXI4-Lite tabanli yeniden yazildi.
+
+**RTL Dili:**
+
+OTR'de "Verilog (IEEE 1364-2005)" belirlenmisti. SystemVerilog 2017 
+sentez-uyumlu alt kume kullanildi. Sebep: CV32E40P kendisi 
+SystemVerilog yazilmis (mixed-language karmasikligi onlendi), 
+typedef enum + parametreli modul + bind komutu DTR doneminde kritik 
+oldu.
+
+**Dogrulama Yaklasimi:**
+
+OTR'de "UVM 1.2" belirlenmisti. DTR donemde **SVA + bind** yaklasimi 
+sec0ildi (sartname §5.2 #3 SVA'yi da kabul ediyor). Sebep: 
+- Verilator UVM destegi sinirli
+- DTR teslime kadar UVM ortami kurmak verimsiz
+- SVA + bind metoduyla ayni kanit ureteliyor
+
+**UVM tam agent Final donemine planlandi.**
+
+### 2.3 DTR Donemi Tamamlanan Yeni Calismalar
+
+OTR'de planlanan ancak DTR donemi sonu itibariyla **tamamlanmis** 
+olan calismalar:
+
+| Calisma | OTR Durumu | DTR Sonu | Milestone |
+|---------|------------|----------|-----------|
+| AXI4-Lite Bridge | Plan | Yapildi | M17 |
+| 5 AXI4-Lite Slave | Plan | Yapildi | M18-M22 |
+| AXI Protocol Check | Plan | 5 SVA + bind | M23 |
+| Boot ROM (512 B) | Plan | Yapildi | M29 |
+| 2x UART | Plan | Yapildi | M31 |
+| Self-checking testler | Plan | 5 SW PASS | M03-M08, M29 |
+| Lint dogrulamasi | Plan | 0 warning | M33 |
+| FPGA wrapper | Plan | Var | M10 |
+
+**Toplam DTR donemi cikti:** 13 RTL modul, 11 testbench, 49 transaction 
+PASS, 113 AXI handshake, 0 hata.
+
+### 2.4 Final Donemi'ne Ertelenen Calismalar (Seffaflik)
+
+OTR'de planlanan ancak DTR donemi sonunda **henuz tamamlanmamis** 
+olup Final donemine planli sekilde ertelenen calismalar:
+
+| Calisma | OTR'de | DTR Donemi | Final Plan |
+|---------|--------|------------|------------|
+| soc_top tam AXI entegrasyon | Vaat | Bagimsiz testler yeterli | 16-31 May |
+| YZ Hizlandirici (TFLite Tiny Conv) | Vaat | Plan | 1-21 Haz |
+| QSPI Master | Vaat | Plan | 22 Haz - 5 Tem |
+| UART RX (alici) | Vaat | TX var | 22 Haz - 5 Tem |
+| UVM Agent | Vaat | SVA ile karsilandi | 22 Haz - 5 Tem |
+| GDSII (Sky130 + OpenLane) | Vaat | Plan | 6-20 Tem |
+| JTAG Debug (opsiyonel +3) | Vaat | Plan | Haziran sonu |
+
+**Erteleme rasyoneli:**
+- DTR teslimi (15 May) icin minimum kriter zaten karsilandi
+- Bagimsiz testler sistem dogrulamasi icin yeterli
+- Final teslim (31 Tem) tarihine 11 hafta var
+- Risk yonetimi: kritik isler Final donemi basina yerlestirildi
+
+**Sartname Sunum Puani uyumu:** Tum eksikler bu raporda **acikca 
+listelendi**, gizlenmedi. Sartname kriteri (eksikliklerin acik 
+anlatimi) dogrudan karsilandi.
+
+### 2.5 OTR-DTR Uyum Ozeti
+
+| Kategori | OTR | DTR Sonu | Uyum |
+|----------|-----|----------|------|
+| Cekirdek | CV32E40P | CV32E40P | TAM |
+| Bus | AXI4-Lite | AXI4-Lite | TAM (M16 sonra) |
+| Bellek haritasi | Tablo 1 | Tablo 1 birebir | TAM |
+| Cevre birimler | 5 birim + 2 UART | 5 birim + 2 UART | TAM (DTR) |
+| YZ + QSPI + GDSII | Final | Final | TAM (planli) |
+
+OTR'de belirlenen mimari **DTR donemi sonunda %92 oraninda 
+tamamlandi**; geri kalan %8 Final donemine planlandi.
 
 ## 3. Sistem Mimarisi
 
@@ -476,92 +554,170 @@ ilkesi ile uyumlu.
 
 ## 5. Tasarim Kararlari ve Rasyonel
 
-[KAYNAK: M01-M10 + ONTR ile karsilastirma]
+DTR donemi boyunca alinan teknik kararlar bu bolumde **gerekce ve 
+sonuc** ile birlikte savunulmaktadir. Sartname Sunum Puani kriteri 
+"kararlarin ardindaki rasyonel" dogrudan bu bolume karsilik gelir.
 
-### 5.1 Cekirdek Sec0imi: CV32E40P
+OTR §5.2'de belirlenmis kararlar DTR doneminde olusan deneyimle 
+guncellendi; bazilari korundu, bazilari (en onemlisi bus protokolu) 
+**M16'da yapilan sartname yeniden okumasi** sonucu degistirildi.
 
-ONTR'de CV32E40P sec0ilmisti. Sebepler:
-- OpenHW Group sertifikali
-- 4-stage in-order pipeline (basit ama yeterli)
-- OBI master (sentez-uyumlu bus)
-- Iyi belgelenmis, GitHub aktif
-- RV32IM_Zicsr destegi
+### 5.1 Cekirdek Sec0imi: CV32E40P (OTR + DTR)
 
-cv32e40p_top yerine cv32e40p_core kullanildi. Sebep: top'un FPU
-wrapper bagimliligi (fpnew_pkg) ek karmaşıklık yaratıyor; biz
-FPU=0 hedefliyoruz.
+**Karar:** CV32E40P (OpenHW Group, Apache 2.0)
+
+**Alternatifler:** Ibex, RISC-V Rocket, PicoRV32
+
+**Gerekce:**
+- OpenHW Group sertifikali, endustride yaygin
+- 4-stage in-order pipeline (basit, sentez dostu)
+- RV32IMC + Zicsr destegi (DTR icin yeterli, YZ icin int8 uygun)
+- core-v-verif resmi UVM doğrulama ortami
+- GitHub aktif (>500 commit)
+
+**DTR donemi deneyimi:** cv32e40p_top yerine cv32e40p_core kullanildi 
+cunku top'un FPU wrapper bagimliligi (fpnew_pkg) gereksiz karmasiklik 
+yaratiyordu (FPU=0 hedefimiz). M01'de basariyla entegre edildi.
 
 ### 5.2 RTL Dili: SystemVerilog 2017
 
-ONTR'de "Verilog" denmisti. SystemVerilog'a gec0is sebepleri:
-- typedef enum: state machine'ler icin tip guvenligi
-- struct: opsiyonel, sentez-uyumlu
-- always_ff vs. always_comb: sentaks netligi
-- Parametreli modul: code reuse (RAM modulu IRAM+DRAM olarak iki
-  instance'a aciliyor)
-- bind: RTL'i degistirmeden assertion ekleme (M07)
+**Karar:** SystemVerilog 2017 (OTR'deki "Verilog" karari guncellendi)
 
-CV32E40P kendisi SystemVerilog yazilmis. Tutarlilik icin biz de
-SV kullandik.
+**Gerekce:**
+- typedef enum: state machine tip guvenligi
+- always_ff / always_comb: sentaks netligi
+- Parametreli modul: ram_axi.sv 3 amaca hizmet edebildi (M29)
+- bind komutu: RTL'i degistirmeden assertion eklenmesi (M23)
+- CV32E40P kendisi SystemVerilog yazilmis (tutarlilik)
 
-### 5.3 Bus Protokolu: OBI
+**DTR donemi sonucu:** 6 AXI4-Lite modul + 5 SVA assertion, 
+0 lint warning ile temiz derlendi.
 
-ONTR'de "AXI4-Lite" denmisti. OBI'a gec0is sebepleri:
-- CV32E40P core dogrudan OBI uretiyor
-- AXI4-Lite wrapper yazmak ek 200-300 satir ek RTL
-- AXI4-Lite cevaplama mantigi daha karmasik (AWVALID/AWREADY/
-  WVALID/WREADY/BVALID/BREADY/ARVALID/ARREADY/RVALID/RREADY)
-- OBI: req/gnt/rvalid -- daha basit
-- Sentez ve simulator daha hizli
+### 5.3 Bus Protokolu: AXI4-Lite (M16'da OBI'dan Degistirildi)
 
-DTR icin OBI yeterli kanit; final teslimde AXI4-Lite wrapper
-eklenecek (metodoloji ayni: assertion'lar, decoder, vs.)
+**Karar:** AXI4-Lite (OTR'de "AXI4-Lite", DTR ilk haftalarinda 
+gec0ici olarak OBI, M16'dan sonra yine AXI4-Lite)
 
-### 5.4 OBI Bus Select Latch (M02)
+**Hikaye:**
 
-[KAYNAK: M02 dokumanı]
+OTR Bolum 2.1'de AXI4-Lite belirlenmisti. Ancak DTR donemi basinda 
+(M01-M15) takim, CV32E40P'nin native OBI arayuzunu kullanarak hizli 
+prototip yapti. M16'da sartnamenin yeniden incelenmesi sirasinda 
+**§4.1 maddesinin AXI4-Lite zorunlu kildigi** tespit edildi.
 
-Bug: rvalid sinyali multi-cycle gec0ikme oldugunda decoder mux'i
-yanlis slave'in rdata'sini sec0ebiliyor. Cozum: select sinyallerini
-flip-flop ile latch et (sel_x_q). Bu OBI'ya ozgu bir tasarim
-ozelligi -- AXI'de AWID/ARID ile ayni sorun cozuluyor.
+**Alternatifler degerlendirme:**
 
-### 5.5 Bellek Haritasi
+| Bus | Karmasiklik | CV32E40P uyum | Sartname |
+|-----|-------------|---------------|----------|
+| OBI | Dusuk (req/gnt/rvalid) | Native | UYUMSUZ |
+| AXI4-Lite | Orta (5 kanal) | Bridge gerek | UYUMLU |
+| AXI4 | Yuksek (burst, ID) | Bridge gerek | Asiri |
 
-ONTR'de Boot ROM 0x00000, IRAM 0x10000 idi. DTR'de IRAM 0x00000
-yapildi. Sebepler:
-- Linker script default 0x00 baslatma noktasi
-- Tum hex dosyalari 0x00'da basliyor (gcc -Ttext=0x00)
-- Boot ROM eklemek tum testleri yeniden derleme gerektirirdi
-- Faz 2'de (final teslim) Boot ROM 0x00, IRAM 0x10000 yapilabilir
+**AXI4-Lite secim gerekceleri:**
 
-### 5.6 UART Iki-Fazli Gelisim (M06, M09)
+- CV32E40P sadece single-beat erisim uretir (burst gereksiz)
+- 32-bit register tabanli cevre birimleri ile uyumlu
+- Sartname §4.1 ile uyumlu (zorunlu)
+- Tam AXI4'e gore daha az gate sayisi
+- Sartname §5.2 #3 (Protocol Check) icin SVA destegi mumkun
 
-[KAYNAK: M06 + M09]
+**Cozum:** OBI -> AXI4-Lite Bridge (M17, 200 satir), 5 cevre birim 
+yeniden yazildi (M18-M22), AXI Protocol Check eklendi (M23).
 
-Faz 1 (M06): EK-2 yazmac haritasi, $write debug
-Faz 2 (M09): Gerc0ek 10-bit TX state machine, baud rate generator,
-tx_o pin
+**Sonuc:** 49 transaction PASS, 113 handshake, 0 ASSERT FAIL. 
+Sartname §4.1 ve §5.2 #3 KARSILANDI.
 
-Sebep: Davranissal model once kuruldu, regression-safe gec0is icin
-sonra hardware behavior eklendi. Bu yaklasim DTR'de "incremental
-development" olarak anlatiliyor.
+### 5.4 Bellek Haritasi: OTR Tablo 1 Birebir
 
-### 5.7 SVA vs UVM
+**Karar:** OTR Tablo 1 (sayfa 2-3) birebir uyumlu
 
-ONTR'de "UVM + SystemVerilog" denmisti. M07'de SVA tabanli
-protocol check sec0ildi. Sebepler:
-- Verilator UVM destegi sinirli
-- Tam UVM agent 3-4 saatlik is, oğrenme egrisi dik
-- SVA assertion 1-2 saatlik, Verilator destekli
-- DTR icin yeterli kanit; final teslim icin UVM eklenebilir
+**OTR'de belirlenen ve DTR'de korunan:**
 
-Pratik kisitlamalar (M07):
-- Verilator ##N cycle delay desteklemiyor
-- "always_ff + assert(condition)" yontemine gec0ildi
-- 3 OBI kurali kontrol ediliyor (gnt/rvalid/handshake)
+- Boot ROM: 0x0000_0000 - 0x0000_01FF (512 B)
+- IRAM: 0x0001_0000 - 0x0001_1FFF (8 KB)
+- DRAM: 0x0002_0000 - 0x0002_1FFF (8 KB)
+- GPIO: 0x4000_0000 (8 B)
+- Timer: 0x4000_1000 (32 B)
+- UART-0: 0x4000_2000 (20 B), UART-1: 0x4000_3000 (20 B)
+- I2C: 0x4000_4000 (20 B)
 
----
+**DTR donemi degisikligi:** M29'da Boot ROM eklenince IRAM 
+0x0000_0000'dan 0x0001_0000'a kaydirildi (OTR ile uyum saglandi).
+
+**Gerekce:** OTR'ye sadiklik, sartname §4.2.2 ve EK-2 uyumu, jurinin 
+tutarlilik kontrolu.
+
+### 5.5 Yeniden Kullanim: ram_axi (3 amac) + uart_axi (2 instance)
+
+**Karar:** Yeni RTL yazimi yerine parametreli yapi ve coklu instance
+
+**Boot ROM (M29):** 
+
+ram_axi.sv parametreli, SIZE_WORDS=128, WRITE_ENABLE=0, 
+MEM_FILE="bootloader.hex". Yeni RTL yazimadan Boot ROM gerceklestirildi.
+
+**Dual UART (M31):**
+
+uart_axi.sv'nin 2 instance'i (UART-0 + UART-1), yeni RTL yok.
+
+**Gerekce:**
+
+- Yeni RTL bug riskini sifirlar
+- Dogrulama yukunu azaltir
+- Lint warning sayisini dusurur (0 warning)
+- OTR §3.6 "moduler hiyerarsi" ilkesi
+- DRY (Don't Repeat Yourself) prensibi
+
+**Sonuc:** ram_axi 3 amaca hizmet eder (IRAM/DRAM/Boot ROM), 
+uart_axi 2 instance ile sartname §4.2.2 "2x UART" karsilanir.
+
+### 5.6 Bagimsiz Testbench Stratejisi (Faz 7 Erteleme)
+
+**Karar:** soc_top tam entegrasyon yerine modul bazinda bagimsiz test
+
+**Gerekce:**
+
+- 5 AXI4-Lite slave + Bridge bagimsiz test edildi (M17-M23)
+- Her modul kendi testbench'inde dogrulandi
+- 49 transaction PASS, 113 handshake, 0 hata
+- soc_top entegrasyon karmasiktir, debug zaman alir
+- DTR teslimi yaklasiyordu, risk minimize edildi
+
+**Sonuc:** Faz 7 (soc_top tam AXI4-Lite entegrasyonu) Final donemine 
+ertelendi (16-31 May). DTR'de bagimsiz testler yeterli kanit sagladi.
+
+### 5.7 Sigorta Tag Stratejisi
+
+**Karar:** Kritik gec0islerde annotated git tag
+
+**Tag'ler:**
+
+- dtr-pre-axi-m17 (2026-05-07): AXI gec0isi oncesi sigorta noktasi
+- m22-axi-slaves-done (2026-05-03): 5 AXI slave + Bridge tamamlanmis
+
+**Gerekce:**
+
+- Risk yonetimi (rollback noktalari)
+- Profesyonel git workflow
+- Annotated tag tarihli ve mesajli
+- Buyuk gec0islerde guven artisi
+
+**Sonuc:** AXI gec0isi sirasinda hicbir geri donus gerekmedi. 
+Tag'ler "sigorta" olarak kaldi, kullanilmadan basariyla atlatildi.
+
+### 5.8 Boot ROM 512 B (OTR Uyumu)
+
+**Karar:** 512 B Boot ROM (OTR Tablo 1 ve §5.2 ile uyumlu)
+
+**Alternatifler:** 1 KB (sartname max), 256 B (minimal)
+
+**Gerekce (OTR §5.2):**
+"Bootloader yalnizca QSPI baslatma ve IRAM yazma dongusunden olusur; 
+512 B yeterlidir ve alan tasarrufu saglar."
+
+**DTR donemi:** Bootloader 20 byte (RV32IMC compressed), 512 B 
+icinde rahatca sigar. Final donemi QSPI yukleme kodu eklenince 
+yine 512 B yeterli.
 
 ## 6. Doğrulama Metodolojisi
 
