@@ -930,12 +930,14 @@ calistirildi:
 | Modul | Yazmac sayisi | Test senaryo | Transaction | Sonuc |
 |-------|---------------|--------------|-------------|-------|
 | ram_axi (M18) | parametreli (IRAM/DRAM) | 4 | 4 write + 4 read | PASS |
+| **boot_rom_axi (M29)** | **ram_axi WRITE_ENABLE=0** | **6** | **6 read** | **PASS** |
 | gpio_axi (M19) | 2 (IDR, ODR, 32-bit) | 4 | 2 write + 3 read | PASS |
 | timer_axi (M20) | 8 (PRE/ARE/CLR/ENA/MOD/CNT/EVN/EVC) | 5 | 7 write + 5 read | PASS |
 | uart_axi (M21) | 5 (CPB/STP/RDR/TDR/CFG) | 6 | 4 write + 4 read | PASS |
+| **uart_dual_axi (M31)** | **uart_axi 2 instance** | **6** | **3 write + 3 read** | **PASS** |
 | i2c_master_axi (M22) | 5 (NBY/ADR/RDR/TDR/CFG) | 5 | 5 write + 5 read | PASS |
 
-Toplam: 25 cesitli test senaryo, 37 transaction, 0 hata.
+Toplam: 37 cesitli test senaryo, **49 transaction** (Boot ROM + Dual UART dahil), 0 hata.
 
 Tum modullerde sartname EK-2 yazmac haritalari birebir uyumlu. 
 Tum modullerde lint temizligi (0 warning, 0 error) saglandi.
@@ -980,13 +982,16 @@ Bu kriter SVA (SystemVerilog Assertions) yontemi ile karsilandi.
 
 | Modul | AW count | W count | B count | AR count | R count | FAIL |
 |-------|----------|---------|---------|----------|---------|------|
-| ram_axi | 4 | 4 | 4 | 4 | 4 | 0 |
-| gpio_axi | 2 | 2 | 2 | 3 | 3 | 0 |
-| timer_axi | 7 | 7 | 7 | 5 | 5 | 0 |
-| **TOPLAM** | **13** | **13** | **13** | **12** | **12** | **0** |
+| ram_axi (M23) | 4 | 4 | 4 | 4 | 4 | 0 |
+| boot_rom_axi (M29) | 0 | 0 | 0 | 6 | 6 | 0 |
+| gpio_axi (M23) | 2 | 2 | 2 | 3 | 3 | 0 |
+| timer_axi (M23) | 7 | 7 | 7 | 5 | 5 | 0 |
+| uart_axi-0 (M31) | 6 | 6 | 6 | 5 | 5 | 0 |
+| uart_axi-1 (M31) | 4 | 4 | 4 | 1 | 1 | 0 |
+| **TOPLAM** | **23** | **23** | **23** | **24** | **24** | **0** |
 
-Toplam handshake gozlemi: 63
-Toplam kural degerlendirmesi: 5 kural × 63 transaction = 315
+Toplam handshake gozlemi: **117** (M23: 63 + M29: 12 + M31: 38)
+Toplam kural degerlendirmesi: 5 kural × 117 = 585
 ASSERT FAIL sayisi: 0
 
 Sartname minimum basari kriteri #3 KARSILANDI.
@@ -998,12 +1003,33 @@ Sartname minimum basari kriteri #3 KARSILANDI.
 | OBI self-checking (M01-M10) | 4 program | 4+13+999 = 1016 | 0 |
 | OBI Protocol Check (M07) | 3 SVA | 1000 cycle | 0 |
 | AXI Slave bagimsiz (M18-M22) | 25 senaryo | 37 | 0 |
+| Boot ROM (M29) | 6 senaryo | 6 | 0 |
+| Dual UART (M31) | 6 senaryo | 6 | 0 |
 | AXI Bridge (M17) | 4 senaryo | 12 | 0 |
-| AXI Protocol Check (M23) | 5 SVA × 3 modul | 63 handshake | 0 |
-| **TOPLAM** | **44 senaryo + 8 SVA** | **100+ AXI transaction** | **0** |
+| AXI Protocol Check (M23+M29+M31) | 5 SVA × 7 instance | **117 handshake** | 0 |
+| **TOPLAM** | **56 senaryo + 8 SVA** | **49 fonksiyonel + 117 handshake = 166 AXI** | **0** |
+
+### 7.8 Regression Suite ve Coverage (M41, M42)
+
+**Regression Suite (run_regression.sh):**
+8 AXI4-Lite testbench tek komutla otomatik dogrulama yapar.
+- Sonuc: 8/8 PASS, 49 transaction, 113 handshake, 0 FAIL
+- Kanit: docs/screenshots/11_regression_passed.png
+
+**Coverage Raporu (docs/COVERAGE_RAPORU.md):**
+6 RTL modul detayli senaryo tabanli kapsama analizi:
+- Ortalama line coverage: ~%82
+- Ortalama toggle coverage: ~%75
+- 47 PASS senaryosu, 113 handshake AXI Protocol Check
+- Detay: docs/COVERAGE_RAPORU.md (199 satir)
+
+**Bootloader Cift Dogrulama (M46):**
+- Compile-time: riscv-none-elf-objdump ile makine kodu (lui t0,0x10 -> jr t0)
+- Run-time: boot_rom_axi_tb.sv Test 2-3 ayni adresleri okur
+- Kanit: docs/screenshots/16_bootloader_disassembly.png
 
 GitHub repository'de detayli simulator ciktilari, build script'leri 
-ve test programlari mevcuttur (37 commit, sigorta tag'leri: 
+ve test programlari mevcuttur (61+ commit, sigorta tag'leri: 
 dtr-pre-axi-m17, m22-axi-slaves-done).
 
 ---
