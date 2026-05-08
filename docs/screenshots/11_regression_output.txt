@@ -1,0 +1,49 @@
+================================================================
+ZUGA-IC AXI4-Lite Regression Suite
+Tarih: 2026-05-08 13:14:45
+================================================================
+
+--- M17: axi_bridge ---
+  PASS - 12 transaction, 0 handshake
+
+--- M18: ram_axi ---
+  PASS - 4 transaction, 20 handshake
+
+--- M29: boot_rom_axi ---
+  PASS - 6 transaction, 12 handshake
+
+--- M19: gpio_axi ---
+  PASS - 5 transaction, 12 handshake
+
+--- M20: timer_axi ---
+  PASS - 5 transaction, 31 handshake
+
+--- M21: uart_axi ---
+  PASS - 6 transaction, 0 handshake
+
+--- M31: uart_dual_axi ---
+  PASS - 6 transaction, 38 handshake
+
+--- M22: i2c_master_axi ---
+  PASS - 5 transaction, 0 handshake
+
+================================================================
+REGRESSION OZET RAPOR
+================================================================
+
+  M17 axi_bridge: PASS (12 tx, 0 handshake)
+  M18 ram_axi: PASS (4 tx, 20 handshake)
+  M29 boot_rom_axi: PASS (6 tx, 12 handshake)
+  M19 gpio_axi: PASS (5 tx, 12 handshake)
+  M20 timer_axi: PASS (5 tx, 31 handshake)
+  M21 uart_axi: PASS (6 tx, 0 handshake)
+  M31 uart_dual_axi: PASS (6 tx, 38 handshake)
+  M22 i2c_master_axi: PASS (5 tx, 0 handshake)
+
+----------------------------------------------------------------
+PASS:        8 / 8
+FAIL:        0
+Toplam Tx:   49 transaction
+Handshake:   113
+----------------------------------------------------------------
+SONUC: TUM TESTLER GECTI ✓
