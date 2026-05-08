@@ -560,7 +560,7 @@ Dual UART (her biri 2 instance) = toplam 7 instance.
 **soc_top.sv (eski OBI, 320 satir):** Mevcut soc_top OBI bus ile 
 yazilmistir (M02). AXI4-Lite slave'ler tum bagimsiz testlerden 
 gec0tigi icin (49 transaction PASS, 0 hata), tam soc_top entegrasyonu 
-**Faz 7 olarak Final donemine** ertelendi (16-31 May).
+**Faz 7 (M49) DTR DONEMINDE TAMAMLANDI** - soc_top_axi.sv (520 satir, 8 May 2026). Vivado sentez 9-10 May hafta sonu seansi icin hazir.
 
 **fpga_top.sv (87 satir, M10):**
 - 100 MHz osilator -> /2 divider -> 50 MHz core clock
@@ -703,7 +703,7 @@ uart_axi.sv'nin 2 instance'i (UART-0 + UART-1), yeni RTL yok.
 **Sonuc:** ram_axi 3 amaca hizmet eder (IRAM/DRAM/Boot ROM), 
 uart_axi 2 instance ile sartname §4.2.2 "2x UART" karsilanir.
 
-### 5.6 Bagimsiz Testbench Stratejisi (Faz 7 Erteleme)
+### 5.6 Bagimsiz Testbench Stratejisi (Faz 7'ye Hazirlik)
 
 **Karar:** soc_top tam entegrasyon yerine modul bazinda bagimsiz test
 
@@ -715,8 +715,9 @@ uart_axi 2 instance ile sartname §4.2.2 "2x UART" karsilanir.
 - soc_top entegrasyon karmasiktir, debug zaman alir
 - DTR teslimi yaklasiyordu, risk minimize edildi
 
-**Sonuc:** Faz 7 (soc_top tam AXI4-Lite entegrasyonu) Final donemine 
-ertelendi (16-31 May). DTR'de bagimsiz testler yeterli kanit sagladi.
+**Sonuc:** Bagimsiz testlerin saglam kaniti uzerine **Faz 7 (M49)** 
+DTR doneminde tamamlandi (8 May 2026). soc_top_axi.sv 520 satir, lint 
+temiz, Vivado sentez hazir.
 
 ### 5.7 Sigorta Tag Stratejisi
 
@@ -766,7 +767,7 @@ kendi testbench'inde dogrulandi.
 **Avantajlar:**
 - Modul bazinda hata bulma (debug suresi minimum)
 - Regresyon testi hizli (her modul ~1-3 saniye simule olur)
-- soc_top entegrasyonu Faz 7 olarak Final donemine ertelenebildi
+- soc_top entegrasyonu **Faz 7 (M49) DTR doneminde tamamlandi** (8 May)
 - 49 transaction PASS + 113 handshake birikti, 0 hata
 
 **Dort katman:**
@@ -1465,7 +1466,7 @@ DTR sonrasi Final teslim donemi 11 hafta. Plan:
 
 | Donem | Is | Sure |
 |-------|-----|------|
-| 16-31 May | Faz 7: soc_top tam AXI4-Lite entegrasyon | 2 hafta |
+| 8 May | **Faz 7 (M49): soc_top_axi TAMAMLANDI** | TAMAM |
 | 1-21 Haz | YZ Hizlandirici (TFLite Micro Speech Tiny Conv, MAC + FSM + CSR + 30 KB SRAM) | 3 hafta |
 | 22 Haz - 5 Tem | QSPI Master (x1/x2/x4) + UART RX + UVM Agent | 2 hafta |
 | 6-20 Tem | GDSII akisi (Sky130 + OpenLane veya Synopsys DC) | 2 hafta |
@@ -1528,7 +1529,7 @@ Asagidaki maddeler bilincli olarak Final teslime (31 Temmuz)
 ertelendi. Bunlar DTR puanini dogrudan etkilemiyor cunku alt-sistem 
 testleri ile yeterli kanit saglandi.
 
-**Eksik 1: soc_top Tam AXI4-Lite Entegrasyonu (Faz 7)**
+**Tamamlanan: soc_top Tam AXI4-Lite Entegrasyonu (Faz 7, M49)**
 - Mevcut durum: 5 AXI4-Lite slave bagimsiz test edildi 
   (37/37 transaction PASS), AXI Bridge 12/12 PASS, AXI Protocol 
   Check 3 modulde 63 handshake / 0 FAIL.
@@ -1595,7 +1596,7 @@ Bu rapor bu ilkeyi su sekilde uygulamaktadir:
 - Tum eksikler yukarida acikca listelenmistir
 - Her eksik icin sebep ve plan belirtilmistir  
 - Riskler dusuk/orta/yuksek seviyelerinde isaretlenmistir
-- Bilincli erteleme kararlari (Faz 7 gibi) gerekceleri ile sunulmustur
+- Faz 7 (soc_top entegrasyonu) DTR doneminde tamamlandi (M49, 8 May)
 
 ---
 
@@ -1685,7 +1686,7 @@ DOGRUDAN KARSILANDI.**
 
 DTR sonrasi Final teslim donemi icin planlanan isler:
 
-- **Faz 7: soc_top tam AXI4-Lite entegrasyon** (1 hafta) - Mevcut 
+- **Faz 7 (M49): TAMAMLANDI** (8 May, soc_top_axi.sv 520 satir, lint temiz) 
   alt-sistem testleri (5 slave + Bridge bagimsiz dogrulandi) 
   yeterli kanit sagladigindan, tam entegrasyon Final'e ertelendi.
 - **YZ Hizlandirici (TFLite Tiny Conv)** (2-3 hafta) - Sartname 
@@ -1704,7 +1705,7 @@ Sartname Sunum Puani kriteri sunlari belirtmektedir:
 Bu rapor bu ilkeyi su sekilde uygulamistir:
 
 1. **Eksiklerin acik listesi:** Bolum 12 (Risk Analizi) tum bilincli 
-   ertelemeleri (Faz 7 entegrasyon, Boot ROM, 2. UART) ve Final 
+   ertelemeleri (YZ hizlandirici, QSPI, GDSII) ve Final 
    donemi planlanan isleri (YZ, QSPI, UVM, GDSII) acikca yazmistir.
 2. **Sayisal dogrulama:** Tum test sonuclari rakamlarla 
    belirtilmistir (37 AXI fonksiyonel + 12 Bridge + 63 protocol 
