@@ -1,0 +1,42 @@
+flowchart TB
+    START(["Power-On / Reset"]) --> PC0
+
+    PC0["CPU PC = 0x0000_0000<br/>boot_addr_i parametre"]
+    PC0 --> FETCH
+
+    subgraph BOOTROM["Boot ROM 512 B (M29)<br/>0x0000_0000 - 0x0000_01FF"]
+        FETCH["IF: AXI Read<br/>ARADDR=0x00"]
+        DECODE["ID: bootloader.S decode"]
+        EXEC["EX: lui t0, 0x10<br/>(t0 = 0x0001_0000)"]
+        JUMP["EX: jr t0<br/>(PC = 0x0001_0000)"]
+        FETCH --> DECODE --> EXEC --> JUMP
+    end
+
+    JUMP --> IRAM_PC
+
+    subgraph IRAM["IRAM 8 KB (M18)<br/>0x0001_0000 - 0x0001_1FFF"]
+        IRAM_PC["CPU PC = 0x0001_0000"]
+        APP["Uygulama programi<br/>(test_full.S vb.)"]
+        IRAM_PC --> APP
+    end
+
+    APP --> PERIPH["Cevre birim erisimi<br/>0x4000_xxxx"]
+
+    PERIPH --> GPIO_OP["GPIO yazma<br/>(LED kontrol)"]
+    PERIPH --> TIMER_OP["Timer baslat<br/>(sayma)"]
+    PERIPH --> UART_OP["UART TX<br/>(karakter gonderim)"]
+    PERIPH --> I2C_OP["I2C transfer<br/>(slave haberlesme)"]
+
+    NOTE["Final donemi: QSPI Master eklenince<br/>Boot ROM dinamik kod yukleyecek"]
+
+    classDef start fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    classDef rom fill:#ffe0b2,stroke:#e65100
+    classDef ram fill:#bbdefb,stroke:#1565c0
+    classDef periph fill:#f3e5f5,stroke:#7b1fa2
+    classDef note fill:#f5f5f5,stroke:#616161,stroke-dasharray: 5 5
+
+    class START start
+    class BOOTROM,FETCH,DECODE,EXEC,JUMP,PC0 rom
+    class IRAM,IRAM_PC,APP ram
+    class PERIPH,GPIO_OP,TIMER_OP,UART_OP,I2C_OP periph
+    class NOTE note

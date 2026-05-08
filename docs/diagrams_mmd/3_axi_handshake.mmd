@@ -1,0 +1,30 @@
+sequenceDiagram
+    participant M as AXI4-Lite Master<br/>(obi_to_axi_lite Bridge)
+    participant S as AXI4-Lite Slave<br/>(ram_axi / gpio_axi / vb.)
+    participant SVA as Protocol Check<br/>(axi_lite_assertions)
+
+    Note over M,S: YAZMA TRANSACTION (3 kanal: AW + W + B)
+
+    M->>S: AWVALID=1, AWADDR=0x1000, AWPROT=0
+    M->>S: WVALID=1, WDATA=0xDEADBEEF, WSTRB=0xF
+    SVA-->>SVA: AW handshake stability check
+    SVA-->>SVA: W handshake stability check
+    S-->>M: AWREADY=1, WREADY=1
+    Note over M,S: AW + W handshake basarili
+    S-->>M: BVALID=1, BRESP=OKAY
+    SVA-->>SVA: B response stability check
+    M->>S: BREADY=1
+    Note over M,S: Yazma tamamlandi (1 transaction = 3 handshake)
+
+    Note over M,S: OKUMA TRANSACTION (2 kanal: AR + R)
+
+    M->>S: ARVALID=1, ARADDR=0x1000, ARPROT=0
+    SVA-->>SVA: AR handshake stability check
+    S-->>M: ARREADY=1
+    Note over M,S: AR handshake basarili
+    S-->>M: RVALID=1, RDATA=0xDEADBEEF, RRESP=OKAY
+    SVA-->>SVA: R response stability check
+    M->>S: RREADY=1
+    Note over M,S: Okuma tamamlandi (1 transaction = 2 handshake)
+
+    Note over M,SVA: Toplam DTR donemi: 113 handshake / 0 ASSERT FAIL

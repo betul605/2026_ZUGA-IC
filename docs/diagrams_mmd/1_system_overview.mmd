@@ -1,0 +1,59 @@
+flowchart TB
+    subgraph CORE["CV32E40P Core (RV32IMC + Zicsr)"]
+        IF["Instruction Fetch"]
+        ID["Decode"]
+        EX["Execute"]
+        WB["Write Back"]
+        IF --> ID --> EX --> WB
+    end
+
+    CORE -- "OBI Instr" --> BRIDGE
+    CORE -- "OBI Data" --> BRIDGE
+
+    subgraph BRIDGE["OBI to AXI4-Lite Bridge (M17, 200 satir)"]
+        SM["6-State FSM<br/>IDLE/AW/W/B/AR/R"]
+    end
+
+    BRIDGE -- "AXI4-Lite Master" --> INTERCONNECT
+
+    subgraph INTERCONNECT["AXI4-Lite Interconnect (Final: soc_top)"]
+        DECODER["Address Decoder"]
+    end
+
+    INTERCONNECT -->|"0x0000_0000<br/>512 B (M29)"| BOOTROM["Boot ROM<br/>ram_axi WRITE_ENABLE=0"]
+    INTERCONNECT -->|"0x0001_0000<br/>8 KB (M18)"| IRAM["IRAM<br/>ram_axi"]
+    INTERCONNECT -->|"0x0002_0000<br/>8 KB (M18)"| DRAM["DRAM<br/>ram_axi"]
+    INTERCONNECT -->|"0x4000_0000<br/>8 B (M19)"| GPIO["GPIO 32-bit<br/>16 in + 16 out"]
+    INTERCONNECT -->|"0x4000_1000<br/>32 B (M20)"| TIMER["Timer<br/>8 yazmac"]
+    INTERCONNECT -->|"0x4000_2000<br/>20 B (M21)"| UART0["UART-0<br/>Genel kullanim"]
+    INTERCONNECT -->|"0x4000_3000<br/>20 B (M31)"| UART1["UART-1<br/>YZ Stream"]
+    INTERCONNECT -->|"0x4000_4000<br/>20 B (M22)"| I2C["I2C Master<br/>400 kHz"]
+
+    UART0 -- "tx_o" --> PIN_UART[("USB-UART pin")]
+    GPIO -- "16-bit out" --> LEDS[("4 LED")]
+    SWITCHES[("4 Switch")] -- "16-bit in" --> GPIO
+
+    AXI_CHECK["AXI Protocol Check (M23)<br/>5 SVA + bind<br/>113 handshake / 0 FAIL"] -.->|"bind"| BOOTROM
+    AXI_CHECK -.->|"bind"| IRAM
+    AXI_CHECK -.->|"bind"| GPIO
+    AXI_CHECK -.->|"bind"| TIMER
+    AXI_CHECK -.->|"bind"| UART0
+    AXI_CHECK -.->|"bind"| UART1
+
+    classDef core fill:#e1f5ff,stroke:#0288d1
+    classDef bridge fill:#fff9c4,stroke:#f9a825
+    classDef bus fill:#fff3e0,stroke:#f57c00
+    classDef rom fill:#ffe0b2,stroke:#e65100
+    classDef ram fill:#c8e6c9,stroke:#2e7d32
+    classDef periph fill:#f3e5f5,stroke:#7b1fa2
+    classDef check fill:#ffcdd2,stroke:#c62828
+    classDef ext fill:#fce4ec,stroke:#c2185b
+
+    class CORE,IF,ID,EX,WB core
+    class BRIDGE,SM bridge
+    class INTERCONNECT,DECODER bus
+    class BOOTROM rom
+    class IRAM,DRAM ram
+    class GPIO,TIMER,UART0,UART1,I2C periph
+    class AXI_CHECK check
+    class PIN_UART,LEDS,SWITCHES ext

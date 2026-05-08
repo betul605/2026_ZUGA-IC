@@ -1,0 +1,37 @@
+flowchart TD
+    ROOT["soc_top_axi.sv<br/>(Faz 7 - Final donem)"]
+
+    ROOT --> BRIDGE["obi_to_axi_lite.sv<br/>(M17, 200 satir)"]
+    ROOT --> SLAVES["AXI4-Lite Slave Modulleri"]
+    ROOT --> CHECK["axi_lite_assertions.sv<br/>(M23, 5 SVA + 5 counter)"]
+
+    SLAVES --> RAM["ram_axi.sv<br/>(M18, 152 satir, parametreli)"]
+    SLAVES --> GPIO["gpio_axi.sv<br/>(M19, 142 satir, EK-2)"]
+    SLAVES --> TIMER["timer_axi.sv<br/>(M20, 230 satir, EK-2)"]
+    SLAVES --> UART["uart_axi.sv<br/>(M21, 265 satir, EK-2)"]
+    SLAVES --> I2C["i2c_master_axi.sv<br/>(M22, 415 satir, 10-state)"]
+
+    RAM --> IRAM["IRAM (8 KB R/W)"]
+    RAM --> DRAM["DRAM (8 KB R/W)"]
+    RAM --> BOOTROM["Boot ROM<br/>(M29, 512 B Read-Only)<br/>WRITE_ENABLE=0"]
+
+    UART --> UART0["UART-0 (M21)<br/>0x4000_2000 Genel"]
+    UART --> UART1["UART-1 (M31)<br/>0x4000_3000 Stream"]
+
+    note1["Muhendislik Zarafeti:<br/>ram_axi 3 amac<br/>uart_axi 2 instance<br/>YENI RTL = 0"]
+
+    classDef top fill:#fff9c4,stroke:#f9a825,stroke-width:3px
+    classDef bridge fill:#fff3e0,stroke:#e65100
+    classDef rtl fill:#c8e6c9,stroke:#2e7d32
+    classDef instance fill:#bbdefb,stroke:#1565c0
+    classDef rom fill:#ffe0b2,stroke:#e65100
+    classDef check fill:#ffcdd2,stroke:#c62828
+    classDef note fill:#f5f5f5,stroke:#616161,stroke-dasharray: 5 5
+
+    class ROOT top
+    class BRIDGE bridge
+    class SLAVES,RAM,GPIO,TIMER,UART,I2C rtl
+    class IRAM,DRAM,UART0,UART1 instance
+    class BOOTROM rom
+    class CHECK check
+    class note1 note
