@@ -2036,3 +2036,169 @@ Kaynaklar IEEE biciminde duzenlenmistir.
 ilgili bolumlerden referanslandirilmistir. Online kaynaklara erisim 
 tarihi: 7-8 Mayis 2026.
 
+
+
+---
+
+## 16. YZ Hizlandirici Tasarim Detaylari (Sablon Bolum 2.2.3, 11p)
+
+YZ Hizlandirici, ZUGA-IC SoC'nin diferansiyel yetenegidir ve sartname 
+§4.2.2 ile §5.2 #4 dogrudan karsiligini olusturur. Bu bolum hizlandiricinin 
+hedef uygulamasi, yazilim modeli, RTL mimarisi, veri akisi ve final 
+donemi yol haritasini sunar.
+
+DTR doneminde hizlandirici RTL gerc0eklemesi tamamlanmamis olup, 
+detayli mimari plan + yazilim modeli hazirlanmistir. Final donemi 
+(1-21 Haziran 2026) RTL gerc0eklemesi ve dogrulama icin ayrilmistir.
+
+### 16.1 Hedef Uygulama: Tiny Conv1D Inference
+
+OTR §4'te tanimlanan hedef:
+- Uygulama: Tiny Conv1D inference (sinir agi cikarimi)
+- Kullanim senaryosu: Akustik anomali tespiti, vibrasyon analizi
+- Hedef performans: 8-bit kuantize, ~5 MAC/cycle @ 50 MHz
+- Bellek butc0esi: 30 KB on-chip SRAM (0x0003_0000)
+
+Neden Tiny Conv1D:
+- 1D convolution mikrodenetleyici icin tum CNN'lerden basit
+- 2D Conv yerine 1D = alan tasarrufu
+- Depthwise + Pointwise ayirma -> daha az MAC
+- TFLite Micro destek (yazilim modelinde hazir)
+
+### 16.2 Yazilim Modeli (TensorFlow Lite Tiny)
+
+Akis:
+1. Egitim (PC): Python/TensorFlow ile basit Conv1D modeli (1-2 katman)
+2. Kuantizasyon: Post-training int8 quant (float32 -> int8)
+3. TFLite export: model.tflite dosyasi
+4. C donusumu: xxd -i model.tflite > model.c (C array)
+5. CV32E40P programi: model.c yuklenir, SRAM'a kopyalanir
+6. Hizlandirici cagrisi: CSR ile START + ADDR + LEN bildirilir
+7. Bekle: DONE flag polling veya interrupt
+8. Sonuc: Output SRAM bolgesinden okunur
+
+Yazilim katman destegi:
+
+| Katman | Donanim destek | Yazilim fallback |
+|--------|----------------|------------------|
+| Conv1D | EVET (ana hedef) | YOK |
+| Depthwise Conv1D | EVET (parametre) | YOK |
+| ReLU | EVET (combinational) | YOK |
+| MaxPool1D | KISMI | EVET |
+| Fully Connected | KISMI | EVET |
+| Softmax | YOK | EVET (lookup table) |
+
+DTR doneminde TFLite Micro yerine manuel model donusumu tercih edildi 
+(daha az karmasiklik). Final donemi Conv hizlandirici uzerinde TFLite 
+Micro demosu hedefleniyor.
+
+### 16.3 Hizlandirici Mimarisi
+
+YZ hizlandirici 6 ana RTL blogundan olusur (planli):
+
+| Blok | Islev | Kabaca satir |
+|------|-------|---------------|
+| CSR (Control & Status) | AXI4-Lite slave, register set | ~150 |
+| FSM (Finite State Machine) | Inference akis kontrol | ~200 |
+| MAC Array (4-8 MAC) | Coklu Multiply-Accumulate | ~250 |
+| Weight Buffer | Filter agirliklari (BRAM) | ~80 |
+| Input Buffer | Giris feature map (BRAM) | ~80 |
+| Output Buffer | Output feature map (BRAM) | ~80 |
+
+Toplam tahmini: ~840 satir RTL (CV32E40P boyutunun ~%10'u).
+
+### 16.4 AXI4-Lite CSR Register Set
+
+Adres: 0x5000_0000 - 0x5000_001F (32 byte, OTR Tablo 1)
+
+| Offset | Yazmac | Aciklama |
+|--------|--------|----------|
+| 0x00 | CTRL | bit0=START, bit1=RESET |
+| 0x04 | STATUS | bit0=BUSY, bit1=DONE, bit2=ERROR |
+| 0x08 | INPUT_ADDR | Giris veri SRAM adresi |
+| 0x0C | OUTPUT_ADDR | Cikis veri SRAM adresi |
+| 0x10 | WEIGHT_ADDR | Agirlik veri SRAM adresi |
+| 0x14 | CFG | bit[3:0]=KERNEL, bit[7:4]=STRIDE |
+| 0x18 | LEN | Veri uzunlugu (sample sayisi) |
+| 0x1C | CYCLE_CNT | Performans sayaci (read-only) |
+
+CSR modul iskeleti gpio_axi.sv ve timer_axi.sv yapisina benzer 
+(AXI4-Lite slave + register set).
+
+### 16.5 Veri Akis Semasi
+
+Akis sirasi:
+
+1. CPU CSR'ye yazma -> weights ADDR, input ADDR, output ADDR, START
+2. FSM tetiklenir -> Weight + Input bufferlari SRAM'den yukler
+3. MAC array partial sum hesaplar -> 4-8 MAC paralel
+4. ReLU aktivasyon -> combinational
+5. Output buffer SRAM'a yazar
+6. DONE flag set -> CPU polling veya interrupt ile algilar
+
+Veri akisi (siralı):
+
+CPU (CV32E40P) -> AXI4-Lite Bus -> YZ CSR Module -> FSM Module -> 
+MAC Array + Buffers -> YZ SRAM (0x30000) -> Output -> Read by CPU
+
+Bu akis blok diyagrami `docs/diagrams_mmd/` klasorune Final donemi 
+basinda eklenecektir (5. Mermaid diyagram).
+
+### 16.6 RTL Gerc0eklemesi Yol Haritasi (Final Donemi)
+
+Final donemi (1-21 Haziran) calisma plani:
+
+| Hafta | Calisma | Tahmini Cikti |
+|-------|---------|---------------|
+| 1 | CSR + AXI4-Lite slave | yz_csr.sv (150 satir) |
+| 2 | MAC array + buffers | yz_mac.sv (250 satir) |
+| 3 | FSM + entegrasyon | yz_top.sv (200 satir) |
+
+Toplam ~600 satir RTL, 3 haftada tamamlanmasi planli.
+
+### 16.7 Karsilasilan Zorluklar ve Cozumler (DTR Donemi)
+
+DTR doneminde YZ hizlandirici icin yapilan oncul calismalar ve 
+karsilasilan zorluklar:
+
+Zorluk 1: TFLite Micro entegrasyonu maliyeti
+- Tespit: TFLite Micro library boyutu ~80 KB, IRAM 8 KB ile uyumsuz
+- Cozum: DTR doneminde **manuel model donusumu** (Python script)
+- Final: Conv hizlandirici donanim seviyesinde, TFLite yazilim seviyesinde 
+  ayni anda calisma planlaniyor
+
+Zorluk 2: MAC sayisi - alan trade-off
+- Tespit: Daha cok MAC = daha hizli ama daha buyuk alan
+- Cozum: DTR'de **4-8 MAC parametreli** mimari (Final'de tune edilecek)
+- Sentez sonuclarina gore karar (Final hafta 2)
+
+Zorluk 3: SRAM 30 KB sinir
+- Tespit: Tipik MobileNet 1-10 MB, Tiny modelimiz 20-30 KB hedef
+- Cozum: Conv1D + depthwise sec0imi (parametre sayisi azaltma)
+- Manuel int8 quantization + sparse matrix tekniği
+
+### 16.8 DTR Donemi Cikti ve Final Hedefleri
+
+DTR donemi sonu YZ hizlandirici durumu:
+- Mimari plan: HAZIR (bu bolum)
+- Yazilim modeli: PLAN HAZIR (TFLite int8 + manuel donusum)
+- RTL gerc0eklemesi: 0 satir (Final donemi)
+- Doğrulama: 0 test (Final donemi)
+
+Final donemi hedefleri:
+- 600+ satir RTL (CSR + MAC + FSM)
+- 5+ testbench senaryosu
+- Simple Conv1D demo (Python ile esleme)
+- AXI Protocol Check 5 SVA bind
+- Sentez raporu: alan ve frekans hedefleri (Final §3.2)
+
+### 16.9 Sartname Uyum Notu
+
+Sartname §5.2 #4 (YZ test) **DTR doneminde tamamlanmamis** olup, 
+**detayli mimari plan + yazilim modeli + yol haritasi** bu bolumde 
+sunulmustur. Sablon §2.2.3 "YZ hizlandirici DTR'de detaylandirilmali" 
+gereksinimi karsilanmistir.
+
+Final teslim (31 Tem 2026) ile YZ hizlandirici tamamlanip 5 SVA + 
+AXI4-Lite Protocol Check + simple Conv1D demo ile dogrulanacaktir.
+
