@@ -62,7 +62,8 @@ module uart_axi_tb;
         .axi_rready_i (axi_rready),
         .axi_rdata_o  (axi_rdata),
         .axi_rresp_o  (axi_rresp),
-        .tx_o         (tx_serial)
+        .tx_o         (tx_serial),
+        .rx_i         (1'b1)              // RX idle (high), bu tb sadece TX testi
     );
 
     initial clk = 0;

@@ -63,7 +63,9 @@ module uart_axi (
     output logic [1:0]  axi_rresp_o,
 
     // Serial output
-    output logic        tx_o
+    output logic        tx_o,
+    // Serial input (Faz 3: RX)
+    input  logic        rx_i
 );
 
     // ------------------------------------------------------------------------
@@ -97,6 +99,20 @@ module uart_axi (
     logic [15:0] tx_baud_cnt_q;
     logic [3:0]  tx_bit_cnt_q;
     logic [7:0]  tx_shift_q;
+
+    // RX state machine (Faz 3 - sartname §5.2 #1 UART RX gereksinimi)
+    typedef enum logic [1:0] {
+        RX_IDLE  = 2'b00,
+        RX_START = 2'b01,
+        RX_DATA  = 2'b10,
+        RX_STOP  = 2'b11
+    } rx_state_e;
+    rx_state_e   rx_state_q;
+    logic [15:0] rx_baud_cnt_q;
+    logic [3:0]  rx_bit_cnt_q;
+    logic [7:0]  rx_shift_q;
+    // RX synchronizer (metastability koruma)
+    logic        rx_sync1_q, rx_sync2_q;
 
     // ------------------------------------------------------------------------
     // AXI4-Lite State Machine
@@ -187,6 +203,12 @@ module uart_axi (
                 default: axi_state_q <= S_IDLE;
             endcase
 
+            // RX completion hook (Faz 3 - sartname §5.2 #1 UART RX)
+            // rx_done_pulse modul sonunda RX FSM tarafindan uretilir
+            if (rx_done_pulse) begin
+                rdr_q    <= {24'h0, rx_shift_q};
+                cfg_q[1] <= 1'b1;  // RX_DONE flag
+            end
             // TX state machine CFG[2] (TX_DONE) set
             // (asagidaki TX FSM bunu yonetir, write override edebilir)
         end
@@ -260,5 +282,82 @@ module uart_axi (
             endcase
         end
     end
+
+
+    // ========================================================================
+    // RX state machine (Faz 3 - sartname §5.2 #1 UART RX)
+    // Bit ortasi sampling (CPB/2 + N*CPB)
+    // ========================================================================
+
+    // RX input synchronizer (2 cycle delay, metastability)
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            rx_sync1_q <= 1'b1;
+            rx_sync2_q <= 1'b1;
+        end else begin
+            rx_sync1_q <= rx_i;
+            rx_sync2_q <= rx_sync1_q;
+        end
+    end
+
+    // RX FSM
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            rx_state_q    <= RX_IDLE;
+            rx_baud_cnt_q <= 16'h0;
+            rx_bit_cnt_q  <= 4'h0;
+            rx_shift_q    <= 8'h0;
+        end else begin
+            case (rx_state_q)
+                RX_IDLE: begin
+                    rx_baud_cnt_q <= 16'h0;
+                    rx_bit_cnt_q  <= 4'h0;
+                    if (rx_sync2_q == 1'b0) begin
+                        rx_state_q <= RX_START;
+                    end
+                end
+                RX_START: begin
+                    if (rx_baud_cnt_q == (cpb_q[15:0] >> 1) - 1) begin
+                        if (rx_sync2_q == 1'b0) begin
+                            rx_baud_cnt_q <= 16'h0;
+                            rx_state_q    <= RX_DATA;
+                        end else begin
+                            rx_state_q <= RX_IDLE;
+                        end
+                    end else begin
+                        rx_baud_cnt_q <= rx_baud_cnt_q + 1;
+                    end
+                end
+                RX_DATA: begin
+                    if (rx_baud_cnt_q == cpb_q[15:0] - 1) begin
+                        rx_baud_cnt_q <= 16'h0;
+                        rx_shift_q <= {rx_sync2_q, rx_shift_q[7:1]};
+                        if (rx_bit_cnt_q == 4'd7) begin
+                            rx_bit_cnt_q <= 4'h0;
+                            rx_state_q   <= RX_STOP;
+                        end else begin
+                            rx_bit_cnt_q <= rx_bit_cnt_q + 1;
+                        end
+                    end else begin
+                        rx_baud_cnt_q <= rx_baud_cnt_q + 1;
+                    end
+                end
+                RX_STOP: begin
+                    if (rx_baud_cnt_q == cpb_q[15:0] - 1) begin
+                        rx_baud_cnt_q <= 16'h0;
+                        rx_state_q    <= RX_IDLE;
+                    end else begin
+                        rx_baud_cnt_q <= rx_baud_cnt_q + 1;
+                    end
+                end
+                default: rx_state_q <= RX_IDLE;
+            endcase
+        end
+    end
+
+    // RX completion: rdr_q ve cfg_q[1] update (rx_done_pulse)
+    logic rx_done_pulse;
+    assign rx_done_pulse = (rx_state_q == RX_STOP) &&
+                           (rx_baud_cnt_q == cpb_q[15:0] - 1);
 
 endmodule
