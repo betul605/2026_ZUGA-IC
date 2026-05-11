@@ -5,9 +5,9 @@ TEKNOFEST 2026 Çip Tasarım Yarışması - Mikrodenetleyici Tasarım Kategorisi
 CV32E40P RISC-V çekirdeği üzerine kurulu, **AXI4-Lite tabanlı** System-on-Chip
 prototipi. Yapay zeka hızlandırıcı için altyapı hazır.
 
-[![GitHub commits](https://img.shields.io/badge/commits-39-brightgreen)]()
-[![Milestone](https://img.shields.io/badge/milestone-39-blue)]()
-[![Tests](https://img.shields.io/badge/AXI%20tests-100%2B%20PASS-success)]()
+[![GitHub commits](https://img.shields.io/badge/commits-72-brightgreen)]()
+[![Milestone](https://img.shields.io/badge/milestone-54-blue)]()
+[![Tests](https://img.shields.io/badge/AXI%20tests-117%2B%20PASS-success)]()
 [![Errors](https://img.shields.io/badge/errors-0-success)]()
 
 ---
@@ -24,14 +24,14 @@ prototipi. Yapay zeka hızlandırıcı için altyapı hazır.
 
 ---
 
-## Mevcut Durum (7 Mayıs 2026)
+## Mevcut Durum (11 Mayıs 2026)
 
 ### Hızlı Özet
 
-- **39 commit, 25 milestone** (M01-M25)
-- DTR Teslim: **15 Mayıs 2026** (10 gün kaldı)
-- 100+ AXI transaction PASS, **0 hata**
-- Şartname Min. Başarı Kriteri #3 **KARŞILANDI**
+- **72 commit, 54 milestone** (M01-M54)
+- DTR Teslim: **15 Mayıs 2026** (4 gün kaldı)
+- **54 AXI transaction PASS**, 117+ handshake, **0 hata**
+- Şartname Min. Başarı Kriteri **#1 (UART RX), #2 (Self-checking), #3 (Protocol Check)** ✅
 
 ### Aşama Tablosu
 
@@ -47,7 +47,25 @@ prototipi. Yapay zeka hızlandırıcı için altyapı hazır.
 | Test screenshot kanıtları | M25 | ✅ TAMAM | 6 PNG + 6 TXT |
 | Vivado sentez | - | 🔄 PLAN | 9-10 May (Umur ile) |
 | Boot ROM + Memory Map | - | 🔄 PLAN | 7-8 May |
-| 2. UART instance | - | 🔄 PLAN | 11 May |
+| 2. UART instance | M31 | ✅ TAMAM | uart_axi.sv 2 instance, 6/6 PASS |
+| **DTR güncelleme dalgası** | **M27-M40** | ✅ **TAMAM** | **14 milestone** |
+| Boot ROM (mühendislik zarafeti) | M29 | ✅ TAMAM | ram_axi.sv yeniden kullanım, 6/6 PASS |
+| **Ekstra puan dalgası** | **M41-M48** | ✅ **TAMAM** | **8 milestone** |
+| Regression Suite | M41 | ✅ TAMAM | 8/8 PASS otomatik |
+| Coverage Raporu | M42 | ✅ TAMAM | 199 satır, ~%82 line/%75 toggle |
+| 4 Mermaid Diyagram PNG | M44 | ✅ TAMAM | System/Modules/Handshake/Boot |
+| Boot ROM Disassembly | M46 | ✅ TAMAM | Compile + Run çift doğrulama |
+| **🌟 FAZ 7: soc_top_axi.sv** | **M49** | ✅ **TAMAM** | **520 satır, lint temiz** |
+| DTR'de Faz 7 TAMAMLANDI | M50 | ✅ TAMAM | 9 yer güncellendi |
+| **Şablon eksikleri** | **M51-M52** | ✅ **TAMAM** | **+18 puan garanti** |
+| Çip Tasarım Akışı (Bölüm 14) | M51 | ✅ TAMAM | 5p |
+| Kaynakça (Bölüm 15) | M51 | ✅ TAMAM | 2p, IEEE 21 kaynak |
+| **YZ Hızlandırıcı (Bölüm 16)** | **M52** | ✅ **TAMAM** | **11p, 9 alt bölüm** |
+| **🌟 UART RX (Test 25p kritik)** | **M53-M54** | ✅ **TAMAM** | **5/5 PASS, TX->RX loopback** |
+| Vivado sentez | - | 🔄 PLAN | 9-10 May (Umur ile) |
+| DTR şablon yapısına çevirme | - | 🔄 PLAN | 11-12 May |
+| Kapak + İçindekiler | - | 🔄 PLAN | 12-13 May |
+| PDF üretimi + format | - | 🔄 PLAN | 13-14 May |
 | DTR PDF teslim | - | 🔄 PLAN | 12-15 May |
 
 ---
