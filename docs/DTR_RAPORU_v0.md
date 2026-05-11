@@ -1,25 +1,63 @@
-# Detayli Tasarim Raporu (DTR)
-
-## TEKNOFEST 2026 Cip Tasarim Yarismasi - Mikrodenetleyici Kategorisi
-
-**Takim:** ZUGA-IC
-**Takim ID:** #989786
-**Basvuru ID:** #5215977
-**Kategori:** Mikrodenetleyici Tasarim (Yongatek)
-
-**Takim Uyeleri:**
-- Umur Bugra Dikmen (Kaptan)
-- Betul Bedir
-
-**Danisman:** Fatih Gul
-
-**Universite:** RTEU Elektrik-Elektronik Muhendisligi
-
-**Teslim Tarihi:** 15 Mayis 2026
-**Rapor Versiyonu:** v0 (sablon)
-**Son Guncelleme:** 27 Nisan 2026
+# CIP TASARIM YARISMASI
+# MIKRODENETLEYICI TASARIM KATEGORISI
+# DETAY TASARIM RAPORU
 
 ---
+
+**TAKIM ADI:** ZUGA-IC
+
+**TAKIM ID:** 989786
+
+**BASVURU ID:** 5215977
+
+**KATEGORI:** Mikrodenetleyici Tasarim (Yongatek)
+
+---
+
+**TAKIM UYELERI:**
+
+| Rol | Isim Soyisim | Okul | Bolum | Sinif |
+|-----|--------------|------|-------|-------|
+| Kaptan | Umur Bugra Dikmen | Recep Tayyip Erdogan Universitesi | EEM | 3 |
+| Uye | Betul Bedir | Recep Tayyip Erdogan Universitesi | EEM | 3 |
+
+**DANISMAN:** Dr. Fatih Gul (RTEU EEM)
+
+---
+
+**Teslim Tarihi:** 15 Mayis 2026  
+**Rapor Versiyonu:** v1.0  
+**Son Guncelleme:** 11 Mayis 2026  
+**GitHub Repository:** https://github.com/betul605/ZUGA-IC
+
+---
+
+\newpage
+
+# Icindekiler
+
+1. **Sistem Tanimi ve Temel Tasarim Ozeti** ... (5p)
+2. **Proje Detay Tasarimi** ... (55p)
+   - 2.1. Sistem Mimarisi ... (15p)
+   - 2.2. Tasarim Detaylari ... (40p)
+     - 2.2.1. Islemci ve Bus Yapisinin Tasarimi ... (10p)
+     - 2.2.2. Cevre Birim Tasarim Detaylari ... (8p)
+     - 2.2.3. YZ Hizlandirici Tasarim Detaylari ... (11p)
+   - 2.3. Boot ... (6p)
+   - 2.4. FPGA Prototipleme ... (5p)
+3. **Cip Tasarim Akisi** ... (5p)
+4. **Test** ... (25p)
+5. **Takim Organizasyonu** ... (3p)
+   - 5.1. Takim Tanimi ... (1p)
+   - 5.2. Gorev Dagilimi ... (2p)
+6. **Is Plani ve Risk Planlamasi** ... (5p)
+7. **Kaynakca** ... (2p)
+
+**Toplam: 100 puan**
+
+---
+
+\newpage
 
 ## 1. Yonetici Ozeti
 
