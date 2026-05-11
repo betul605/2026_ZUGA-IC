@@ -205,7 +205,7 @@ olan calismalar:
 | Lint dogrulamasi | Plan | 0 warning | M33 |
 | FPGA wrapper | Plan | Var | M10 |
 
-**Toplam DTR donemi cikti:** 13 RTL modul, 11 testbench, 49 transaction 
+**Toplam DTR donemi cikti:** 14 RTL modul, 12 testbench, 54 transaction 
 PASS, 113 AXI handshake, 0 hata.
 
 ### 2.4 Final Donemi'ne Ertelenen Calismalar (Seffaflik)
@@ -218,7 +218,7 @@ olup Final donemine planli sekilde ertelenen calismalar:
 | soc_top tam AXI entegrasyon | Vaat | Bagimsiz testler yeterli | 16-31 May |
 | YZ Hizlandirici (TFLite Tiny Conv) | Vaat | Plan | 1-21 Haz |
 | QSPI Master | Vaat | Plan | 22 Haz - 5 Tem |
-| UART RX (alici) | Vaat | TX var | 22 Haz - 5 Tem |
+| UART RX (alici) | TAMAM (M53) | TX + RX cift yon | 8 May 2026 |
 | UVM Agent | Vaat | SVA ile karsilandi | 22 Haz - 5 Tem |
 | GDSII (Sky130 + OpenLane) | Vaat | Plan | 6-20 Tem |
 | JTAG Debug (opsiyonel +3) | Vaat | Plan | Haziran sonu |
@@ -493,7 +493,7 @@ EK-2 yazmac haritasi (20 byte, 5 yazmac):
 |--------|--------|-----|----------|
 | 0x00 | UART_CPB | RW | Clock-Per-Bit (baud) |
 | 0x04 | UART_STP | RW | Stop Bit |
-| 0x08 | UART_RDR | RO | RX Data (Final donem) |
+| 0x08 | UART_RDR | RO | RX Data (M53 TAMAM, 8 May) |
 | 0x0C | UART_TDR | WO | TX Data |
 | 0x10 | UART_CFG | RW | TX_EN, RX_DONE, TX_DONE |
 
@@ -506,6 +506,26 @@ EK-2 yazmac haritasi (20 byte, 5 yazmac):
 
 **TX state machine:** 10-bit frame (1 start + 8 data + 1 stop). 
 Baud rate generator UART_CPB yazmaci ile programlanabilir.
+
+**RX state machine (M53, 8 May 2026):** 4 durumlu FSM (RX_IDLE, 
+RX_START, RX_DATA, RX_STOP). 
+
+Onemli ozellikler:
+- **2-cycle metastability synchronizer** (rx_sync1_q -> rx_sync2_q) 
+  ile asenkron rx_i giris korumasi
+- **Bit-ortasi sampling** (CPB/2 + N*CPB) ile en stabil okuma
+- **False start koruma**: RX_START'ta yarim bit sonra rx_i hala low mu 
+  diye tekrar kontrol
+- **rx_done_pulse hook**: rdr_q ve cfg_q[1] (RX_DONE) AXI yazma 
+  blokunun icinden set olur (multiple driver hatasi onlendi)
+
+**UART RX Test (M53):** TX -> RX loopback testbench 
+(uart_rx_axi_tb.sv, 193 satir). Test verisi: 'A' (0x41), 'B' (0x42), 
+0xFF, 0x00, 0x55. **Sonuc: 5/5 PASS** (Verilator lint TEMIZ).
+
+Bu eklemeyle sartname §5.2 #1 ("UART icin TX VE RX farkli baud 
+rate'lerle calisma") gereksinimi karsilandi. Mevcut TX davranisi 
+birebir korundu (6/6 PASS hala gec0erli).
 
 **Test sonuclari:**
 - M21 (UART-0 tek instance): 6/6 PASS, 'A' karakteri ekranda
@@ -559,7 +579,7 @@ Dual UART (her biri 2 instance) = toplam 7 instance.
 
 **soc_top.sv (eski OBI, 320 satir):** Mevcut soc_top OBI bus ile 
 yazilmistir (M02). AXI4-Lite slave'ler tum bagimsiz testlerden 
-gec0tigi icin (49 transaction PASS, 0 hata), tam soc_top entegrasyonu 
+gec0tigi icin (54 transaction PASS, 0 hata), tam soc_top entegrasyonu 
 **Faz 7 (M49) DTR DONEMINDE TAMAMLANDI** - soc_top_axi.sv (520 satir, 8 May 2026). Vivado sentez 9-10 May hafta sonu seansi icin hazir.
 
 **fpga_top.sv (87 satir, M10):**
@@ -578,7 +598,7 @@ DTR donemi boyunca iki onemli yeniden kullanim ornegi:
 | Modul | Kullanim Sayisi | Yeni RTL? |
 |-------|-----------------|-----------|
 | ram_axi.sv | 3 (IRAM, DRAM, Boot ROM) | HAYIR (M29) |
-| uart_axi.sv | 2 (UART-0, UART-1) | HAYIR (M31) |
+| uart_axi.sv | 2 (UART-0, UART-1) + RX | HAYIR (M31+M53) |
 
 Bu yaklasim yeni RTL bug riskini sifirlar, dogrulama yukunu azaltir, 
 lint warning sayisini dusurur (0 warning), OTR §3.6 "moduler hiyerarsi" 
@@ -656,7 +676,7 @@ prototip yapti. M16'da sartnamenin yeniden incelenmesi sirasinda
 **Cozum:** OBI -> AXI4-Lite Bridge (M17, 200 satir), 5 cevre birim 
 yeniden yazildi (M18-M22), AXI Protocol Check eklendi (M23).
 
-**Sonuc:** 49 transaction PASS, 113 handshake, 0 ASSERT FAIL. 
+**Sonuc:** 54 transaction PASS, 117+ handshake, 0 ASSERT FAIL. 
 Sartname §4.1 ve §5.2 #3 KARSILANDI.
 
 ### 5.4 Bellek Haritasi: OTR Tablo 1 Birebir
@@ -711,7 +731,7 @@ uart_axi 2 instance ile sartname §4.2.2 "2x UART" karsilanir.
 
 - 5 AXI4-Lite slave + Bridge bagimsiz test edildi (M17-M23)
 - Her modul kendi testbench'inde dogrulandi
-- 49 transaction PASS, 113 handshake, 0 hata
+- 54 transaction PASS, 117+ handshake, 0 hata (M53 UART RX dahil)
 - soc_top entegrasyon karmasiktir, debug zaman alir
 - DTR teslimi yaklasiyordu, risk minimize edildi
 
@@ -768,7 +788,7 @@ kendi testbench'inde dogrulandi.
 - Modul bazinda hata bulma (debug suresi minimum)
 - Regresyon testi hizli (her modul ~1-3 saniye simule olur)
 - soc_top entegrasyonu **Faz 7 (M49) DTR doneminde tamamlandi** (8 May)
-- 49 transaction PASS + 113 handshake birikti, 0 hata
+- 54 transaction PASS + 117+ handshake birikti, 0 hata
 
 **Dort katman:**
 1. Self-checking test programlari (assembly, RV32IMC)
@@ -805,6 +825,7 @@ hedefler ve kendi build script'i ile cagrilir.
 | timer_axi_tb.sv | Timer (M20) | 5 | PASS |
 | uart_axi_tb.sv | UART tek (M21) | 6 | PASS |
 | uart_dual_axi_tb.sv | Dual UART (M31) | 6 | PASS |
+| uart_rx_axi_tb.sv | UART RX TX->RX loopback (M53) | 5 | PASS |
 | i2c_master_axi_tb.sv | I2C (M22) | 5 | PASS |
 
 **Toplam: 49 fonksiyonel transaction PASS, 0 hata.**
@@ -932,13 +953,14 @@ calistirildi:
 |-------|---------------|--------------|-------------|-------|
 | ram_axi (M18) | parametreli (IRAM/DRAM) | 4 | 4 write + 4 read | PASS |
 | **boot_rom_axi (M29)** | **ram_axi WRITE_ENABLE=0** | **6** | **6 read** | **PASS** |
+| **uart_rx_axi (M53)** | **uart_axi.sv (RX FSM eklendi, 364 satir)** | **5** | **5 write+read** | **PASS** |
 | gpio_axi (M19) | 2 (IDR, ODR, 32-bit) | 4 | 2 write + 3 read | PASS |
 | timer_axi (M20) | 8 (PRE/ARE/CLR/ENA/MOD/CNT/EVN/EVC) | 5 | 7 write + 5 read | PASS |
 | uart_axi (M21) | 5 (CPB/STP/RDR/TDR/CFG) | 6 | 4 write + 4 read | PASS |
 | **uart_dual_axi (M31)** | **uart_axi 2 instance** | **6** | **3 write + 3 read** | **PASS** |
 | i2c_master_axi (M22) | 5 (NBY/ADR/RDR/TDR/CFG) | 5 | 5 write + 5 read | PASS |
 
-Toplam: 37 cesitli test senaryo, **49 transaction** (Boot ROM + Dual UART dahil), 0 hata.
+Toplam: 42 cesitli test senaryo, **54 transaction** (Boot ROM + Dual UART + UART RX dahil), 0 hata.
 
 Tum modullerde sartname EK-2 yazmac haritalari birebir uyumlu. 
 Tum modullerde lint temizligi (0 warning, 0 error) saglandi.
@@ -1468,7 +1490,8 @@ DTR sonrasi Final teslim donemi 11 hafta. Plan:
 |-------|-----|------|
 | 8 May | **Faz 7 (M49): soc_top_axi TAMAMLANDI** | TAMAM |
 | 1-21 Haz | YZ Hizlandirici (TFLite Micro Speech Tiny Conv, MAC + FSM + CSR + 30 KB SRAM) | 3 hafta |
-| 22 Haz - 5 Tem | QSPI Master (x1/x2/x4) + UART RX + UVM Agent | 2 hafta |
+| 8 May | **UART RX (M53): TAMAMLANDI** 5/5 PASS TX->RX loopback | TAMAM |
+| 22 Haz - 5 Tem | QSPI Master (x1/x2/x4) + UVM Agent | 2 hafta |
 | 6-20 Tem | GDSII akisi (Sky130 + OpenLane veya Synopsys DC) | 2 hafta |
 | 21-30 Tem | Final test + dokumantasyon + demo hazirligi | 1.5 hafta |
 | **31 Tem 17:00** | **FINAL TESLIM** | - |
@@ -1567,7 +1590,7 @@ minimum basari kriterleri ve ek puanlar icin gerekli:
   tanimlamalari var. x1/x2/x4 destek, 16 komut destegi.
   Risk seviyesi: Orta.
 
-- **UART RX (Receive):** 2-3 gunluk is. Mevcut TX modulu 
+- **UART RX (Receive): TAMAMLANDI (M53, 8 May).** uart_axi.sv 264->364 satir. RX FSM 4 durum + 2-cycle synchronizer + bit-ortasi CPB/2 sampling. 5/5 PASS TX->RX loopback testi. Mevcut TX modulu 
   genisletilecek. Sartname EK-2 UART_RDR yazmaci icin gerekli.
   Risk seviyesi: Orta.
 
@@ -1692,7 +1715,7 @@ DTR sonrasi Final teslim donemi icin planlanan isler:
 - **YZ Hizlandirici (TFLite Tiny Conv)** (2-3 hafta) - Sartname 
   EK-1, MAC + FSM + CSR + 30 KB SRAM + UART-stream giris.
 - **QSPI Master** (1 hafta) - Sartname EK-2, x1/x2/x4 destek.
-- **UART RX (Receive)** (2-3 gun) - Mevcut TX modulu genisletilecek.
+- **UART RX (Receive): TAMAMLANDI (M53, 8 May).** Mevcut TX modulu RX FSM ile genisletildi, 5/5 PASS.
 - **UVM Agent (AXI dogrulama)** (1-2 hafta) - SVA'dan UVM'e gec0is.
 - **GDSII (Sky130 + OpenLane)** (Final donemi) - Cip Akisi puani.
 - **JTAG Debug** (3-4 gun, opsiyonel) - +3 bonus puan.
