@@ -106,3 +106,54 @@ Sohbet erisim sorunu olursa veya yarinki Claude bagam kurabilsin diye.
 
 ---
 
+
+### 11 May Aksam - UART RX Maratonu (M53-M54)
+
+**Sablon Test 25p icin kritik eksik kapatildi.**
+
+**M53 TAMAMLANDI: UART RX (5/5 PASS) ⭐⭐⭐⭐⭐**
+
+uart_axi.sv 264 -> 364 satir:
+- RX FSM 4 durum (RX_IDLE / START / DATA / STOP)
+- 2-cycle metastability synchronizer (rx_sync1_q -> rx_sync2_q)
+- Bit-ortasi sampling (CPB/2 + N*CPB)
+- False start koruma (RX_START'ta yarim bit sonra tekrar kontrol)
+- rx_done_pulse: rdr_q + cfg_q[1] AXI yazma blokunda set (multiple driver onlendi)
+- Verilator lint: 0 hata 0 uyari
+
+uart_rx_axi_tb.sv (193 satir):
+- TX -> RX loopback (tx_o ile rx_i ayni tele bagli)
+- 5 test: 'A', 'B', 0xFF, 0x00, 0x55
+- Calisan uart_axi_tb.sv stili (wait stratejisi)
+- **5/5 PASS** (screenshot 18_uart_rx_test_passed.png)
+
+Yasanan zorluk: Verilator --timing testbench'lerde initial blok 
+non-blocking sorunlu. Cozum: `wait (axi_awready && axi_wready)` 
+(do/while @posedge yerine).
+
+**M54: DTR'ye UART RX yansitildi**
+
+- 4 yer "Faz 3 ertelendi" -> "M53 TAMAMLANDI" (Bolum 2, 11, 12)
+- Bolum 4.6 UART_AXI: 264->364 satir, RX state machine paragrafi eklendi
+- 6 yer "49 transaction" -> "54 transaction" (UART RX 5 yeni test)
+- Bolum 7: Testbench tablosu + AXI transaction tablosu UART RX satiri
+- DTR 2206 -> 2228 satir
+
+**Bugunun toplam bilanco (M27-M54, 28 milestone):**
+- 71 commit
+- DTR 855 -> 2228 satir (%160 buyume)
+- +18 puan garanti (Cip Akisi + Kaynakca + YZ)
+- Faz 7 (M49) + UART RX (M53) = 2 BUYUK kazanim
+- 18 gorsel kanit (17.lint + 18.uart_rx_test eklendi)
+- 4 annotated tag
+
+**Tahmini DTR puani: 87-92 / 100** (Vivado sonrasi 95+)
+
+**Kalan kritik isler (15 May teslime 7 gun):**
+1. DDK testbench geldiginde ./dtr_demo dizini hazirla (ELEME!)
+2. DTR'yi sablon yapisina cevirme (2-3 saat)
+3. Vivado sentez (9-10 May, Umur ile)
+4. DTR Bolum 9 (FPGA Prototipleme) Vivado sonrasi
+5. Kapak + Icindekiler (30 dk)
+6. PDF + format kontrol (3-4 saat)
+
