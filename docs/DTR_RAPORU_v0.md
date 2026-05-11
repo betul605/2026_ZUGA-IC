@@ -1751,3 +1751,288 @@ DTR_RAPORU_v0.md (bu dosya)
 ### Ek E: Test Programlari (sw/ klasoru)
 - hello.S, test_gpio.S, test_timer.S, test_full.S
 
+
+
+---
+
+## 14. Cip Tasarim Akisi (Sablon Bolum 3, 5p)
+
+[KAYNAK: Sablon Madde 3 - Cip Tasarim Akisi]
+
+Ticari EDA araclarinin DTR asamasi sonrasinda saglanmasi planlandigi 
+icin bu bolumde detayli faaliyet raporu yerine **akis asamalari, plan 
+ve oncul calismalar** sunulmaktadir.
+
+### 14.1 Hedef Tasarim Akisi (ASIC)
+
+ZUGA-IC takimi **acik kaynak SkyWater Sky130 PDK** (130nm) ve 
+**OpenLane** acik kaynak ASIC akisini hedeflemektedir. Bu sec0im:
+
+- **Aciklik:** Tum araclar acik kaynak (Yosys, OpenROAD, Magic, Netgen)
+- **Maliyet:** Lisans gereksinimi yok, ogrencilere uygun
+- **Toplulukk:** efabless ve OpenROAD aktif Slack kanallari mevcut
+- **Tape-out destegi:** efabless Open MPW shuttle programi
+
+### 14.2 Planlanan Asamalar
+
+| Asama | Arac | Cikti | Sure (planli) |
+|-------|------|-------|----------------|
+| RTL -> Netlist | Yosys | Gate-level netlist | 1 gun |
+| Floorplan | OpenROAD | Die boyutu, IO yerlesimi | 1 gun |
+| Yerlestirme (Placement) | OpenROAD | Standard cell yerlesim | 2 gun |
+| CTS (Clock Tree Synthesis) | OpenROAD | Clock distribution | 1 gun |
+| Yonlendirme (Routing) | TritonRoute | Routed netlist | 2 gun |
+| DRC (Design Rule Check) | Magic | DRC clean rapor | 1 gun |
+| LVS (Layout vs Schematic) | Netgen | LVS clean rapor | 1 gun |
+| GDSII Olusturma | Magic | Final layout (.gds) | 0.5 gun |
+
+**Toplam:** ~10 is gunu (Final donemi 6-20 Temmuz icin uygun).
+
+### 14.3 FPGA Prototip Akisi (DTR Donemi)
+
+DTR doneminde Vivado uzerinde **Xilinx Arty A7-100T** FPGA hedefli 
+sentez seansi planlandi (9-10 Mayis 2026, hafta sonu).
+
+**Beklenen ciktilar:**
+- post-synth utilization raporu (LUT, FF, BRAM, DSP kullanim)
+- Static Timing Analysis (STA) - 50 MHz hedefi
+- Schematic gorsel (post-synth)
+- Bitstream uretimi (opsiyonel)
+
+### 14.4 Faydalanilan Topluluklar ve Kaynaklar
+
+- **OpenHW Group GitHub** (github.com/openhwgroup/cv32e40p) - CV32E40P RTL kaynak
+- **efabless Community Slack** (Sky130 + OpenLane destek)
+- **OpenROAD GitHub & Slack** (akis ve hata cozumleri)
+- **AMBA Specification** (AXI4-Lite protocol referansi)
+- **Xilinx UG901** (Vivado Synthesis User Guide)
+- **TEKNOFEST Cip Tasarim Yarismasi** teknik forum ve sartname dokumantasyonu
+- **Anthropic Claude** (RTL kod gelistirme, debug ve dogrulama asistani)
+
+### 14.5 Oncul Calismalar
+
+DTR donemi boyunca ASIC akisi icin yapilan oncul calismalar:
+
+1. **Sentez dostu RTL:** Tum modullerde `always_ff` / `always_comb`, 
+   sentez-uyumsuz construct'lardan kacinma (initial sadece testbench)
+2. **Lint temiz kod:** Verilator -Wall ile 6 AXI4-Lite modulunde 
+   0 warning 0 error
+3. **Parametreli modul:** ram_axi.sv 3 amaca hizmet (IRAM/DRAM/Boot ROM) 
+   - tek bir hard cell tekrar kullanim
+4. **Memory map:** OTR Tablo 1 birebir, ASIC fiziksel adresleme uyumlu
+5. **Clock domain:** Tek saat (50 MHz) - CTS karmasikligi minimum
+6. **Reset stratejisi:** Active-low senkron reset (rst_ni) - tum modullerde tutarli
+
+### 14.6 Final Donemi Hedefleri
+
+Final teslim (31 Temmuz 2026) icin hedefler:
+
+- Sky130 PDK + OpenLane akisinda **GDSII** uretimi
+- DRC + LVS clean (0 hata)
+- Yaklasik die alani: 1.5mm x 1.5mm (CV32E40P + cevre birimler + YZ)
+- Tape-out hazirligi (efabless Open MPW shuttle adayligi)
+
+Bu bolum **Sartname Cip Akisi puani (%20)** dogrudan karsilik gelir.
+
+
+
+---
+
+## 15. Kaynakca (Sablon Bolum 7, 2p)
+
+[KAYNAK: Sablon Madde 7 - Kaynakca]
+
+ZUGA-IC DTR raporunun hazirlanmasinda asagidaki kaynaklar kullanilmistir. 
+Kaynaklar IEEE biciminde duzenlenmistir.
+
+### Sartname ve Yarisma Kaynaklari
+
+[1] T3 Vakfi, "TEKNOFEST 2026 Cip Tasarim Yarismasi Sartnamesi v1.2," 
+    Mikrodenetleyici Kategorisi, 2026.
+
+[2] T3 Vakfi, "2026 Mikrodenetleyici Tasarim DTR Sablonu," 
+    Detay Tasarim Raporu sablonu, 2026.
+
+### IP Cekirdek ve Bus Standartlari
+
+[3] OpenHW Group, "CV32E40P User Manual," Revision 1.0, 2024. 
+    [Cevrimici]. https://github.com/openhwgroup/cv32e40p
+
+[4] OpenHW Group, "CV32E40P RTL Source Code," Apache 2.0 License. 
+    [Cevrimici]. https://github.com/openhwgroup/cv32e40p
+
+[5] ARM Limited, "AMBA AXI and ACE Protocol Specification," 
+    IHI 0022, Revision E.a, 2017.
+
+[6] ARM Limited, "AMBA 4 AXI4-Lite Interface Specification," 
+    IHI 0022, Bolum B (AXI4-Lite Subset), 2017.
+
+[7] OpenHW Group, "Open Bus Interface (OBI) Specification," v1.5.0, 
+    2023. [Cevrimici]. https://github.com/openhwgroup/obi
+
+### EDA Araclari ve Dokumantasyon
+
+[8] Verilator, "Verilator Reference Manual v5.020," Wilson Snyder 
+    et al., 2024. [Cevrimici]. https://verilator.org/guide/
+
+[9] Xilinx Inc., "Vivado Design Suite User Guide: Synthesis," 
+    UG901, v2023.1, 2023.
+
+[10] Xilinx Inc., "Xilinx 7 Series FPGAs Configurable Logic Block 
+     User Guide," UG474, v1.8, 2016.
+
+[11] Digilent, "Arty A7 Reference Manual," Rev. F, 2021. 
+     [Cevrimici]. https://digilent.com/reference/programmable-logic/arty-a7/
+
+### ASIC Akis ve Acik Kaynak PDK
+
+[12] Skywater Foundry, "SkyWater Open Source PDK Documentation," 
+     Process Node SKY130A, 2024. 
+     [Cevrimici]. https://skywater-pdk.readthedocs.io/
+
+[13] The OpenROAD Project, "OpenROAD: An Open-Source RTL-to-GDS Tool 
+     Flow," 2024. [Cevrimici]. https://openroad.readthedocs.io/
+
+[14] efabless, "OpenLane: Automated ASIC Design Flow," v2.0, 2024. 
+     [Cevrimici]. https://github.com/efabless/openlane2
+
+### Doğrulama ve Test Standartlari
+
+[15] IEEE Standards Association, "IEEE Standard for SystemVerilog - 
+     Unified Hardware Design, Specification, and Verification Language," 
+     IEEE Std 1800-2017, 2018.
+
+[16] Accellera Systems Initiative, "Universal Verification Methodology 
+     (UVM) Reference Manual," v1.2, 2024.
+
+### Yazilim ve Toolchain
+
+[17] RISC-V Foundation, "The RISC-V Instruction Set Manual, Volume I: 
+     Unprivileged ISA," v20191213, 2019.
+
+[18] xPack GNU RISC-V Embedded GCC, "Toolchain Documentation," 
+     v13.2.0-2, 2024. 
+     [Cevrimici]. https://xpack.github.io/dev-tools/riscv-none-elf-gcc/
+
+### YZ ve Yapay Zeka Kaynaklari (Final Donemi Icin)
+
+[19] TensorFlow, "TensorFlow Lite for Microcontrollers (TFLite Micro) 
+     Documentation," Google Inc., 2024. 
+     [Cevrimici]. https://www.tensorflow.org/lite/microcontrollers
+
+[20] M. Sandler et al., "MobileNetV2: Inverted Residuals and Linear 
+     Bottlenecks," CVPR 2018, pp. 4510-4520.
+
+### AI Asistan Destek
+
+[21] Anthropic, "Claude AI Assistant," Mart-Mayis 2026 doneminde 
+     RTL gelistirme, debug, doğrulama ve dokumantasyon asistani 
+     olarak kullanildi.
+
+---
+
+**Kaynakca Notu:** Bu listede yer alan tum kaynaklar rapor icerisinde 
+ilgili bolumlerden referanslandirilmistir. Online kaynaklara erisim 
+tarihi: 7-8 Mayis 2026.
+
+
+
+---
+
+## 15. Kaynakca (Sablon Bolum 7, 2p)
+
+[KAYNAK: Sablon Madde 7 - Kaynakca]
+
+ZUGA-IC DTR raporunun hazirlanmasinda asagidaki kaynaklar kullanilmistir. 
+Kaynaklar IEEE biciminde duzenlenmistir.
+
+### Sartname ve Yarisma Kaynaklari
+
+[1] T3 Vakfi, "TEKNOFEST 2026 Cip Tasarim Yarismasi Sartnamesi v1.2," 
+    Mikrodenetleyici Kategorisi, 2026.
+
+[2] T3 Vakfi, "2026 Mikrodenetleyici Tasarim DTR Sablonu," 
+    Detay Tasarim Raporu sablonu, 2026.
+
+### IP Cekirdek ve Bus Standartlari
+
+[3] OpenHW Group, "CV32E40P User Manual," Revision 1.0, 2024. 
+    [Cevrimici]. https://github.com/openhwgroup/cv32e40p
+
+[4] OpenHW Group, "CV32E40P RTL Source Code," Apache 2.0 License. 
+    [Cevrimici]. https://github.com/openhwgroup/cv32e40p
+
+[5] ARM Limited, "AMBA AXI and ACE Protocol Specification," 
+    IHI 0022, Revision E.a, 2017.
+
+[6] ARM Limited, "AMBA 4 AXI4-Lite Interface Specification," 
+    IHI 0022, Bolum B (AXI4-Lite Subset), 2017.
+
+[7] OpenHW Group, "Open Bus Interface (OBI) Specification," v1.5.0, 
+    2023. [Cevrimici]. https://github.com/openhwgroup/obi
+
+### EDA Araclari ve Dokumantasyon
+
+[8] Verilator, "Verilator Reference Manual v5.020," Wilson Snyder 
+    et al., 2024. [Cevrimici]. https://verilator.org/guide/
+
+[9] Xilinx Inc., "Vivado Design Suite User Guide: Synthesis," 
+    UG901, v2023.1, 2023.
+
+[10] Xilinx Inc., "Xilinx 7 Series FPGAs Configurable Logic Block 
+     User Guide," UG474, v1.8, 2016.
+
+[11] Digilent, "Arty A7 Reference Manual," Rev. F, 2021. 
+     [Cevrimici]. https://digilent.com/reference/programmable-logic/arty-a7/
+
+### ASIC Akis ve Acik Kaynak PDK
+
+[12] Skywater Foundry, "SkyWater Open Source PDK Documentation," 
+     Process Node SKY130A, 2024. 
+     [Cevrimici]. https://skywater-pdk.readthedocs.io/
+
+[13] The OpenROAD Project, "OpenROAD: An Open-Source RTL-to-GDS Tool 
+     Flow," 2024. [Cevrimici]. https://openroad.readthedocs.io/
+
+[14] efabless, "OpenLane: Automated ASIC Design Flow," v2.0, 2024. 
+     [Cevrimici]. https://github.com/efabless/openlane2
+
+### Doğrulama ve Test Standartlari
+
+[15] IEEE Standards Association, "IEEE Standard for SystemVerilog - 
+     Unified Hardware Design, Specification, and Verification Language," 
+     IEEE Std 1800-2017, 2018.
+
+[16] Accellera Systems Initiative, "Universal Verification Methodology 
+     (UVM) Reference Manual," v1.2, 2024.
+
+### Yazilim ve Toolchain
+
+[17] RISC-V Foundation, "The RISC-V Instruction Set Manual, Volume I: 
+     Unprivileged ISA," v20191213, 2019.
+
+[18] xPack GNU RISC-V Embedded GCC, "Toolchain Documentation," 
+     v13.2.0-2, 2024. 
+     [Cevrimici]. https://xpack.github.io/dev-tools/riscv-none-elf-gcc/
+
+### YZ ve Yapay Zeka Kaynaklari (Final Donemi Icin)
+
+[19] TensorFlow, "TensorFlow Lite for Microcontrollers (TFLite Micro) 
+     Documentation," Google Inc., 2024. 
+     [Cevrimici]. https://www.tensorflow.org/lite/microcontrollers
+
+[20] M. Sandler et al., "MobileNetV2: Inverted Residuals and Linear 
+     Bottlenecks," CVPR 2018, pp. 4510-4520.
+
+### AI Asistan Destek
+
+[21] Anthropic, "Claude AI Assistant," Mart-Mayis 2026 doneminde 
+     RTL gelistirme, debug, doğrulama ve dokumantasyon asistani 
+     olarak kullanildi.
+
+---
+
+**Kaynakca Notu:** Bu listede yer alan tum kaynaklar rapor icerisinde 
+ilgili bolumlerden referanslandirilmistir. Online kaynaklara erisim 
+tarihi: 7-8 Mayis 2026.
+
