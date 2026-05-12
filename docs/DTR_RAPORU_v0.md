@@ -88,7 +88,7 @@ tarafindan, Dr. Fatih Gul danismanliginda yurutulmustur.
 
 | Metrik              | Deger                                |
 |---------------------|--------------------------------------|
-| Git commit          | 37 (16 Mart - 1 May 2026)            |
+| Git commit          | **80** (16 Mart - 12 May 2026)       |
 | Milestone           | 23 (M01 - M23)                       |
 | Sigorta tag         | 2 (dtr-pre-axi-m17, m22-axi-slaves)  |
 | RTL modul           | 13 (5 AXI4-Lite + Bridge + eski OBI) |
@@ -156,7 +156,7 @@ Tasarimin en onemli sonuclari:
    I2C 5 yazmac, RAM parametreli).
 
 Kaynak kod GitHub'da herkese acik (github.com/betul605/ZUGA-IC),
-23 detayli milestone dokumani ile her gelisim adimi kayit altina
+60 milestone dokumantasyonu ile her gelisim adimi kayit altina
 alinmistir. 2 sigorta git tag'i (dtr-pre-axi-m17, m22-axi-slaves-done)
 risk yonetimi icin konuldu.
 
@@ -403,7 +403,7 @@ PASS, 3'u Final donemine planlandi.
 Check, ram_axi'nin 3 amaca hizmet etmesi, uart_axi'nin 2 instance'i) 
 `docs/screenshots/13_diagram_modules.png` dosyasinda detayli sunulmustur.
 
-ZUGA-IC SoC tasarimi 13 RTL modul icermektedir: 7 OBI tabanli (eski) + 
+ZUGA-IC SoC tasarimi 14 RTL modul icermektedir: 7 OBI tabanli (eski) + 
 6 AXI4-Lite tabanli (M17-M22). AXI4-Lite gec0isi sirasinda eski 
 modullerin yerine yenileri yazilmistir; eski OBI moduller referans 
 olarak repository'de korunmaktadir.
@@ -851,7 +851,7 @@ yazildi. Her program PASS/FAIL ciktisi uretir.
 
 ### 6.3 Bagimsiz Modul Testbench'leri
 
-11 testbench dosyasi tb/ klasorunde. Her biri belirli modul/grubu 
+12 testbench dosyasi tb/ klasorunde (M53 UART RX eklendi). Her biri belirli modul/grubu 
 hedefler ve kendi build script'i ile cagrilir.
 
 | Testbench | Modul | Test Sayisi | Sonuc |
@@ -938,9 +938,9 @@ Kanit: docs/screenshots/10_lint_clean.png (M33)
 |------------------|----------|
 | §5.2 #2 Self-checking test | KARSILANDI (5 SW, hepsi PASS) |
 | §5.2 #3 AXI Protocol Check | KARSILANDI (5 SVA + bind, 113 handshake, 0 FAIL) |
-| §3.2.2 Test durum dokumu | VAR (Bolum 7 + 11 screenshot + run_regression.sh) |
+| §3.2.2 Test durum dokumu | VAR (Bolum 7 + **19 screenshot** + run_regression.sh 9/9 PASS) |
 | §3.2.2 Coverage raporlari | VAR (handshake + docs/COVERAGE_RAPORU.md, %82 line/%75 toggle) |
-| §3.2.2 Ekran goruntuleri | VAR (docs/screenshots/, 11 PNG) |
+| §3.2.2 Ekran goruntuleri | VAR (docs/screenshots/, **19 PNG**) |
 
 Detayli test sonuclari ve handshake dokumu Bolum 7 (Dogrulama 
 Sonuclari) bolumunde sunulmustur.
@@ -1090,7 +1090,7 @@ Sartname minimum basari kriteri #3 KARSILANDI.
 - Kanit: docs/screenshots/16_bootloader_disassembly.png
 
 GitHub repository'de detayli simulator ciktilari, build script'leri 
-ve test programlari mevcuttur (61+ commit, sigorta tag'leri: 
+ve test programlari mevcuttur (80+ commit, sigorta tag'leri: 
 dtr-pre-axi-m17, m22-axi-slaves-done).
 
 ---
@@ -1440,7 +1440,7 @@ yeni teknoloji. Cip Akisi puaninin (%20) tamami buradan gelmektedir.
 
 ### 11.1 Tamamlanan Donem (16 Mart - 7 Mayis 2026)
 
-DTR donemi 33 milestone ile dort ana fazda yurutuldu. Her milestone 
+DTR donemi 60 milestone ile dort ana fazda yurutuldu (M01-M60). Her milestone 
 ayri git commit ve milestone .md dokumani ile kayit altina alindi.
 
 **Faz 1 - SoC Iskelet (16 Mart - 27 Nisan, M01-M10):**
@@ -1552,7 +1552,7 @@ DTR donemi sonu (7 Mayis 2026):
 | Sayfa (PDF) | - (henuz uretilmedi) | <30 (sartname siniri) |
 | Ekran goruntusu | 10 | 13 (Vivado +3) |
 | Mermaid diyagrami | 3 (.md icinde) | 3 PNG |
-| GitHub commit | 48 | ~55 |
+| GitHub commit | **80** (12 May) | ~85 (15 May tahmini) |
 
 ---
 ## 12. Risk Analizi (Sablon Bolum 6: Is Plani ve Risk Planlamasi, 5p - bolum 2/2)
@@ -1673,14 +1673,14 @@ tabanli mikrodenetleyici tasarimini bastan sona gerc0eklestirmistir.
 
 **RTL Gelisim:**
 
-- 26 milestone tamamlandi (M01-M26), her biri belirli bir teknik
+- 60 milestone tamamlandi (M01-M60), her biri belirli bir teknik
   hedefe odakli ve kendi dokumanina sahip.
-- 13 RTL modul yazildi (~3000+ satir SystemVerilog 2017):
+- 14 RTL modul yazildi (~3500+ satir SystemVerilog 2017, M49 soc_top_axi.sv 520 satir dahil):
   - **OBI tabanli (eski):** ram, uart, gpio, timer, i2c_master, 
     soc_top, fpga_top
   - **AXI4-Lite (yeni):** obi_to_axi_lite (Bridge), ram_axi, 
     gpio_axi, timer_axi, uart_axi, i2c_master_axi
-- 40 git commit GitHub'a (github.com/betul605/ZUGA-IC) atildi.
+- 80 git commit GitHub'a (github.com/betul605/ZUGA-IC) atildi.
 - 2 sigorta git tag (dtr-pre-axi-m17, m22-axi-slaves-done) risk 
   yonetimi icin konuldu.
 
@@ -1771,7 +1771,7 @@ Bu rapor bu ilkeyi su sekilde uygulamistir:
 2. **Sayisal dogrulama:** Tum test sonuclari rakamlarla 
    belirtilmistir (37 AXI fonksiyonel + 12 Bridge + 63 protocol 
    check = 100+ transaction, 0 hata).
-3. **GitHub seffafligi:** 40 commit, her milestone ayri kayit, 
+3. **GitHub seffafligi:** 80 commit, her milestone ayri kayit (4 annotated tag sigorta), 
    sigorta tag'leri risk yonetimi icin konuldu.
 4. **Test kanitlari:** 6 simulator screenshot + 6 output text 
    `docs/screenshots/` klasorunde dogrudan erisilebilir.
@@ -1784,7 +1784,7 @@ hizli karsilik** dongusu, takimin DTR sonrasi Final teslim donemi
 icin de gerekli olgunluga sahip oldugunun kanitidir.
 
 GitHub repository ZUGA-IC herkese acik olup, tum gelisim adimlari 
-26 ayri milestone dokumani ile kayit altina alinmistir.
+60 ayri milestone dokumani ile kayit altina alinmistir.
 
 ## EKLER
 
