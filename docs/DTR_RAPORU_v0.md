@@ -1074,14 +1074,14 @@ Sartname minimum basari kriteri #3 KARSILANDI.
 
 **Regression Suite (run_regression.sh):**
 8 AXI4-Lite testbench tek komutla otomatik dogrulama yapar.
-- Sonuc: 8/8 PASS, 49 transaction, 113 handshake, 0 FAIL
+- Sonuc: **9/9 PASS, 54 transaction, 113 handshake, 0 FAIL** (M59, 12 May, screenshot 19)
 - Kanit: docs/screenshots/11_regression_passed.png
 
 **Coverage Raporu (docs/COVERAGE_RAPORU.md):**
 6 RTL modul detayli senaryo tabanli kapsama analizi:
 - Ortalama line coverage: ~%82
 - Ortalama toggle coverage: ~%75
-- 47 PASS senaryosu, 113 handshake AXI Protocol Check
+- 54 PASS senaryosu, 113 handshake AXI Protocol Check (UART RX dahil)
 - Detay: docs/COVERAGE_RAPORU.md (199 satir)
 
 **Bootloader Cift Dogrulama (M46):**
@@ -1343,7 +1343,7 @@ Sartnamede tanimli 5 minimum odul kriterinden DTR donemi sonu durumu:
 | # | Kriter | DTR Durumu | Final Hedefi |
 |---|--------|------------|--------------|
 | 1 | FPGA + 2 cevre birim | RTL hazir, **9-10 May Vivado sentez** planlandi | Bitstream + canli demo |
-| 2 | Self-checking test | **KARSILANDI** (5 SW PASS + run_regression.sh 8/8 PASS) | UVM coverage collector |
+| 2 | Self-checking test | **KARSILANDI** (5 SW PASS + run_regression.sh **9/9 PASS, 54 tx**) | UVM coverage collector |
 | 3 | AXI/AXI-Lite Protocol Check | **KARSILANDI** (5 SVA, **117 handshake**, 0 FAIL) | UVM agent eklenmesi |
 | 4 | YZ test | Plan (Final donem) | Tam YZ hizlandirici (TFLite Tiny) |
 | 5 | GDSII | Plan (Final donem) | Sky130 + OpenLane akis |
@@ -1366,7 +1366,7 @@ tamamlanacak (Vivado), 2 kriter Final teslimi icin planlandi.**
 | **bootloader.S (M29)** | **Boot ROM, lui+jr IRAM jump** | **0x10000 jump (disassembly)** | **PASS** |
 
 **Otomatik regression:** `run_regression.sh` (M41) ile tek komutla 
-8 testbench dogrulamasi (49 transaction, 113 handshake, 8/8 PASS). 
+9 testbench dogrulamasi (54 transaction, 113 handshake, **9/9 PASS, M59 12 May**). 
 Kanit: docs/screenshots/11_regression_passed.png
 
 Tum testler conditional branch (beq) ile basari/basarisizlik dali 
