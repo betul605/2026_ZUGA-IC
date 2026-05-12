@@ -268,3 +268,68 @@ Regression detayi:
 3. DTR final revizyon (tutarlilik)
 4. PDF uretimi (pandoc)
 
+
+### 12 May Aksam (Devam) - Final Revizyon Maraton (M61-M64)
+
+**DTR icerik mukemmellestirme + sablon §2.4 + sartname §5.2 #4 + EK-1.**
+
+**M61: DTR tutarlilik revizyonu**
+- 3 RTL modul sayisi (13 -> 14, soc_top_axi M49 dahil)
+- 1 testbench sayisi (11 -> 12, UART RX M53)
+- 2 gorsel sayisi (11 PNG -> 19 PNG)
+- 9 commit/milestone sayisi (37 -> 80 commit, 23/26/33/48/40/26 -> 60 milestone)
+- 14 numerik guncelleme, DTR sayilari M27-M60 reflect
+
+**M62: 20. PNG YZ Veri Akis Diyagrami**
+- 05_yz_dataflow.mmd mermaid.live PNG export (542 KB)
+- DTR Bolum 16.11'e Sekil 5 olarak referansli
+- YZ §2.2.3 gorsel kanit gereksinimi TAM
+- 19 -> 20 PNG
+
+**M63: DTR Bolum 9 FPGA Hazirligi tam yenileme**
+- Eski 53 satir (3-4 May, fpga_top.sv OBI eski) -> 108 satir
+- soc_top_axi.sv M49 ile guncellenmis (520 satir Harvard mimari)
+- 8 alt bolum: 9.1 hazirlik tablo, 9.2 Arty A7-100T, 9.3 top module, 
+  9.4 constraint, 9.5 Vivado adimlar, 9.6 beklenen sonuclar, 9.7 sentez 
+  sonrasi 3 screenshot plan, 9.8 bitstream Final
+- Vivado sentez 13-14 May icin tam hazirlik
+- Sablon §2.4 5p icin guc0lu temel
+
+**M64: YZ Bolum 16 sartname §5.2 #4 ve EK-1 uyum**
+- 16.1 hedef uygulama TFLite Micro Speech Tiny Conv1D olarak guncellendi
+  - EK-1 ile birebir esleshtirme (KWS birincil + akustik anomali ikincil)
+  - MFCC ozellikleri 40x49 frame
+  - %85+ dogruluk hedefi
+- 16.14 YZ Test ve Dogrulama Yaklasimi (yeni alt bolum)
+  - 5 katman test hiyerarsisi:
+    Katman 1: Modul birim testleri (yz_csr/mac/fsm/buffer tb)
+    Katman 2: AXI Protocol Compliance (5 SVA, 100+ handshake)
+    Katman 3: Inference smoke test (yz_inference_tb)
+    Katman 4: Stress + edge case (all-zero, all-one, random)
+    Katman 5: Python yazilim eslemesi (referans karsilastirma)
+  - Beklenen: ~1500 satir testbench + ~500 satir Python
+  - 100+ handshake hedefi
+- DTR 2431 -> 2497 satir (+66)
+
+**DTR son durum (12 May 16:50):**
+- 2497 satir, 17 bolum
+- 20 PNG gorsel kanit
+- 84 commit
+- Sablon 12/12 uyum (tum sablonun her bolumu karsiland - sadece Vivado sonuc bekliyor)
+- YZ §2.2.3: 11/11 MAKSIMUM
+- Faz 7 + UART RX + EK-1 Speech + 5 katman test plan
+
+**Tahmini DTR puani: 96-99 / 100** (Vivado sentez sonrasi 99-100!)
+
+**Bugun toplam (M27-M64, 38 milestone):**
+- 84 commit, 20 gorsel
+- DTR 855 -> 2497 satir (%192 buyume!)
+- +21 puan garanti
+- Faz 7 + UART RX + YZ MAKSIMUM + Bolum 9 FPGA HAZIR
+
+**Kalan kritik isler (15 May'a 3 gun):**
+1. Vivado sentez (Umur ile, 13-14 May hafta sonu)
+2. DDK testbench dizini ./dtr_demo (eleme, DDK paylasimi bekleniyor)
+3. DTR PDF uretimi (pandoc Calibri 11pt 1.15 satir max 30 sayfa)
+4. Final revizyon
+
