@@ -59,7 +59,7 @@
 
 \newpage
 
-## 1. Yonetici Ozeti
+## 1. Yonetici Ozeti (Sablon Bolum 1: Sistem Tanimi ve Temel Tasarim Ozeti, 5p)
 
 ZUGA-IC takimi, TEKNOFEST 2026 Cip Tasarim Yarismasi (Mikrodenetleyici
 Kategorisi) kapsaminda OpenHW Group'un CV32E40P RISC-V cekirdegi
@@ -160,7 +160,7 @@ Kaynak kod GitHub'da herkese acik (github.com/betul605/ZUGA-IC),
 alinmistir. 2 sigorta git tag'i (dtr-pre-axi-m17, m22-axi-slaves-done)
 risk yonetimi icin konuldu.
 
-## 2. ONTR'den Bu Yana Yapilan Degisiklikler
+## 2. ONTR'den Bu Yana Yapilan Degisiklikler (Sablon disi destek)
 
 OTR (16 Mart 2026) ile DTR (15 Mayis 2026) arasinda 8 haftalik 
 gelistirme donemi gerc0eklesti. Bu surec boyunca OTR'de belirlenen 
@@ -284,7 +284,7 @@ anlatimi) dogrudan karsilandi.
 OTR'de belirlenen mimari **DTR donemi sonunda %92 oraninda 
 tamamlandi**; geri kalan %8 Final donemine planlandi.
 
-## 3. Sistem Mimarisi
+## 3. Sistem Mimarisi (Sablon Bolum 2.1: Sistem Mimarisi, 15p)
 
 **Sekil 1:** Sistem genel mimarisi (CV32E40P + Bridge + 5 AXI4-Lite Slave + 
 Boot ROM + Dual UART + Protocol Check) `docs/screenshots/12_diagram_system.png` 
@@ -397,7 +397,7 @@ PASS, 3'u Final donemine planlandi.
 
 ---
 
-## 4. Modul Detaylari
+## 4. Modul Detaylari (Sablon Bolum 2.2.2: Cevre Birim, 8p + Bolum 2.3: Boot, 6p)
 
 **Sekil 2:** RTL modul hiyerarsisi (soc_top -> Bridge + 5 Slave + Protocol 
 Check, ram_axi'nin 3 amaca hizmet etmesi, uart_axi'nin 2 instance'i) 
@@ -642,7 +642,7 @@ Bu yaklasim yeni RTL bug riskini sifirlar, dogrulama yukunu azaltir,
 lint warning sayisini dusurur (0 warning), OTR §3.6 "moduler hiyerarsi" 
 ilkesi ile uyumlu.
 
-## 5. Tasarim Kararlari ve Rasyonel
+## 5. Tasarim Kararlari ve Rasyonel (Sablon Bolum 2.2.1: Islemci ve Bus Yapisinin Tasarimi, 10p)
 
 DTR donemi boyunca alinan teknik kararlar bu bolumde **gerekce ve 
 sonuc** ile birlikte savunulmaktadir. Sartname Sunum Puani kriteri 
@@ -810,7 +810,7 @@ Tag'ler "sigorta" olarak kaldi, kullanilmadan basariyla atlatildi.
 icinde rahatca sigar. Final donemi QSPI yukleme kodu eklenince 
 yine 512 B yeterli.
 
-## 6. Doğrulama Metodolojisi
+## 6. Doğrulama Metodolojisi (Sablon Bolum 4: Test, 25p - bolum 1/2)
 
 DTR donemi boyunca dogrulama metodolojisi **dort katmanli yapida** 
 yurutuldu. Sartname §5.2 minimum kriter #2 (self-checking test) ve 
@@ -945,7 +945,7 @@ Kanit: docs/screenshots/10_lint_clean.png (M33)
 Detayli test sonuclari ve handshake dokumu Bolum 7 (Dogrulama 
 Sonuclari) bolumunde sunulmustur.
 
-## 7. Doğrulama Sonuclari
+## 7. Doğrulama Sonuclari (Sablon Bolum 4: Test, 25p - bolum 2/2)
 
 [KAYNAK: M01-M10 simulasyon ciktilari]
 
@@ -1095,7 +1095,7 @@ dtr-pre-axi-m17, m22-axi-slaves-done).
 
 ---
 
-## 8. Karsilasilan Zorluklar ve Cozumler
+## 8. Karsilasilan Zorluklar ve Cozumler (Sablon disi destek)
 
 DTR donemi boyunca yasanan teknik zorluklar bu bolumde **acik ve net 
 bicimde** belgelenmistir. Sartname Sunum Puani kriteri (eksikliklerin 
@@ -1281,7 +1281,7 @@ cozuldu. Diger iki onemli ekleme (Boot ROM M29, Dual UART M31)
    eksikliklerin acik anlatimini odullendirdigi icin, bu raporda 
    tum zorluklar acikca belgelendi.
 
-## 9. FPGA Hazirligi
+## 9. FPGA Hazirligi (Sablon Bolum 2.4: FPGA Prototipleme, 5p)
 
 [KAYNAK: M09 + M10]
 
@@ -1334,7 +1334,7 @@ teslim icin (Agustos 2026).
 
 ---
 
-## 10. Sartname Odul Kriterleri Durumu
+## 10. Sartname Odul Kriterleri Durumu (Sablon disi - sartname uyum izleme)
 
 [KAYNAK: Sartname Madde 5.2 - Minimum Basari Kriterleri]
 
@@ -1436,7 +1436,7 @@ iskelet Final donemi yazilacak (MAC + FSM + CSR + test). Tam Conv1D
 yeni teknoloji. Cip Akisi puaninin (%20) tamami buradan gelmektedir.
 
 ---
-## 11. Takvim ve Kalan Is
+## 11. Takvim ve Kalan Is (Sablon Bolum 6: Is Plani ve Risk Planlamasi, 5p - bolum 1/2)
 
 ### 11.1 Tamamlanan Donem (16 Mart - 7 Mayis 2026)
 
@@ -1555,7 +1555,7 @@ DTR donemi sonu (7 Mayis 2026):
 | GitHub commit | 48 | ~55 |
 
 ---
-## 12. Risk Analizi
+## 12. Risk Analizi (Sablon Bolum 6: Is Plani ve Risk Planlamasi, 5p - bolum 2/2)
 
 Bu bolum sartname Sunum Puani kriteri geregi, eksiklerin acik bir 
 sekilde anlatimini icermektedir. Riskler uc grupta sunulmustur:
@@ -1661,7 +1661,7 @@ Bu rapor bu ilkeyi su sekilde uygulamaktadir:
 
 ---
 
-## 13. Sonuc
+## 13. Sonuc (Sablon disi destek)
 
 ZUGA-IC takimi, TEKNOFEST 2026 Cip Tasarim Yarismasi (Mikrodenetleyici
 Kategorisi) DTR donemi (16 Mart - 15 May 2026) icerisinde, sinirli
@@ -1995,112 +1995,6 @@ Kaynaklar IEEE biciminde duzenlenmistir.
 **Kaynakca Notu:** Bu listede yer alan tum kaynaklar rapor icerisinde 
 ilgili bolumlerden referanslandirilmistir. Online kaynaklara erisim 
 tarihi: 7-8 Mayis 2026.
-
-
-
----
-
-## 15. Kaynakca (Sablon Bolum 7, 2p)
-
-[KAYNAK: Sablon Madde 7 - Kaynakca]
-
-ZUGA-IC DTR raporunun hazirlanmasinda asagidaki kaynaklar kullanilmistir. 
-Kaynaklar IEEE biciminde duzenlenmistir.
-
-### Sartname ve Yarisma Kaynaklari
-
-[1] T3 Vakfi, "TEKNOFEST 2026 Cip Tasarim Yarismasi Sartnamesi v1.2," 
-    Mikrodenetleyici Kategorisi, 2026.
-
-[2] T3 Vakfi, "2026 Mikrodenetleyici Tasarim DTR Sablonu," 
-    Detay Tasarim Raporu sablonu, 2026.
-
-### IP Cekirdek ve Bus Standartlari
-
-[3] OpenHW Group, "CV32E40P User Manual," Revision 1.0, 2024. 
-    [Cevrimici]. https://github.com/openhwgroup/cv32e40p
-
-[4] OpenHW Group, "CV32E40P RTL Source Code," Apache 2.0 License. 
-    [Cevrimici]. https://github.com/openhwgroup/cv32e40p
-
-[5] ARM Limited, "AMBA AXI and ACE Protocol Specification," 
-    IHI 0022, Revision E.a, 2017.
-
-[6] ARM Limited, "AMBA 4 AXI4-Lite Interface Specification," 
-    IHI 0022, Bolum B (AXI4-Lite Subset), 2017.
-
-[7] OpenHW Group, "Open Bus Interface (OBI) Specification," v1.5.0, 
-    2023. [Cevrimici]. https://github.com/openhwgroup/obi
-
-### EDA Araclari ve Dokumantasyon
-
-[8] Verilator, "Verilator Reference Manual v5.020," Wilson Snyder 
-    et al., 2024. [Cevrimici]. https://verilator.org/guide/
-
-[9] Xilinx Inc., "Vivado Design Suite User Guide: Synthesis," 
-    UG901, v2023.1, 2023.
-
-[10] Xilinx Inc., "Xilinx 7 Series FPGAs Configurable Logic Block 
-     User Guide," UG474, v1.8, 2016.
-
-[11] Digilent, "Arty A7 Reference Manual," Rev. F, 2021. 
-     [Cevrimici]. https://digilent.com/reference/programmable-logic/arty-a7/
-
-### ASIC Akis ve Acik Kaynak PDK
-
-[12] Skywater Foundry, "SkyWater Open Source PDK Documentation," 
-     Process Node SKY130A, 2024. 
-     [Cevrimici]. https://skywater-pdk.readthedocs.io/
-
-[13] The OpenROAD Project, "OpenROAD: An Open-Source RTL-to-GDS Tool 
-     Flow," 2024. [Cevrimici]. https://openroad.readthedocs.io/
-
-[14] efabless, "OpenLane: Automated ASIC Design Flow," v2.0, 2024. 
-     [Cevrimici]. https://github.com/efabless/openlane2
-
-### Doğrulama ve Test Standartlari
-
-[15] IEEE Standards Association, "IEEE Standard for SystemVerilog - 
-     Unified Hardware Design, Specification, and Verification Language," 
-     IEEE Std 1800-2017, 2018.
-
-[16] Accellera Systems Initiative, "Universal Verification Methodology 
-     (UVM) Reference Manual," v1.2, 2024.
-
-### Yazilim ve Toolchain
-
-[17] RISC-V Foundation, "The RISC-V Instruction Set Manual, Volume I: 
-     Unprivileged ISA," v20191213, 2019.
-
-[18] xPack GNU RISC-V Embedded GCC, "Toolchain Documentation," 
-     v13.2.0-2, 2024. 
-     [Cevrimici]. https://xpack.github.io/dev-tools/riscv-none-elf-gcc/
-
-### YZ ve Yapay Zeka Kaynaklari (Final Donemi Icin)
-
-[19] TensorFlow, "TensorFlow Lite for Microcontrollers (TFLite Micro) 
-     Documentation," Google Inc., 2024. 
-     [Cevrimici]. https://www.tensorflow.org/lite/microcontrollers
-
-[20] M. Sandler et al., "MobileNetV2: Inverted Residuals and Linear 
-     Bottlenecks," CVPR 2018, pp. 4510-4520.
-
-### AI Asistan Destek
-
-[21] Anthropic, "Claude AI Assistant," Mart-Mayis 2026 doneminde 
-     RTL gelistirme, debug, doğrulama ve dokumantasyon asistani 
-     olarak kullanildi.
-
----
-
-**Kaynakca Notu:** Bu listede yer alan tum kaynaklar rapor icerisinde 
-ilgili bolumlerden referanslandirilmistir. Online kaynaklara erisim 
-tarihi: 7-8 Mayis 2026.
-
-
-
----
-
 ## 16. YZ Hizlandirici Tasarim Detaylari (Sablon Bolum 2.2.3, 11p)
 
 YZ Hizlandirici, ZUGA-IC SoC'nin diferansiyel yetenegidir ve sartname 
@@ -2263,3 +2157,70 @@ gereksinimi karsilanmistir.
 Final teslim (31 Tem 2026) ile YZ hizlandirici tamamlanip 5 SVA + 
 AXI4-Lite Protocol Check + simple Conv1D demo ile dogrulanacaktir.
 
+
+
+---
+
+\newpage
+
+## 17. Takim Organizasyonu (Sablon Bolum 5, 3p)
+
+### 17.1 Takim Tanimi (Sablon §5.1, 1p)
+
+**Takim Adi:** ZUGA-IC  
+**Takim ID:** 989786  
+**Basvuru ID:** 5215977  
+**Kategori:** Mikrodenetleyici Tasarim (Yongatek)  
+**Universite:** Recep Tayyip Erdogan Universitesi (RTEU)  
+**Bolum:** Elektrik-Elektronik Muhendisligi  
+**Danisman:** Dr. Fatih Gul (RTEU EEM)  
+**GitHub:** https://github.com/betul605/ZUGA-IC
+
+ZUGA-IC takimi, **RTEU Elektrik-Elektronik Muhendisligi 3. sinif** 
+ogrencileri **Umur Bugra Dikmen (Kaptan)** ve **Betul Bedir** 
+tarafindan TEKNOFEST 2026 Cip Tasarim Yarismasi Mikrodenetleyici 
+Kategorisi'nde yarismak uzere kurulmustur. Takim, **acik kaynak** 
+ve **endustri standardi** araclar (OpenHW Group CV32E40P, AMBA 
+AXI4-Lite, Verilator, OpenLane) ile **modular ve sentez dostu** 
+bir SoC tasarimi hedeflemistir.
+
+### 17.2 Gorev Dagilimi (Sablon §5.2, 2p)
+
+Takim icinde gorev dagilimi **uzmanlik alanlarina ve ders programina** 
+gore yapilmistir. Her uye haftada en az 20 saat proje uzerinde 
+calismaktadir.
+
+| Uye | Rol | Sorumluluk Alanlari |
+|-----|-----|---------------------|
+| **Umur Bugra Dikmen** | Takim Kaptani | FPGA sentez (Vivado), CV32E40P entegrasyonu, sistem mimarisi, takim koordinasyonu, jury sunumu |
+| **Betul Bedir** | Geliştirici | RTL gelistirme (14 modul), AXI4-Lite gec0is, dogrulama (54 transaction, 117+ handshake), DTR dokumantasyonu, GitHub yonetimi |
+
+**Ortak sorumluluklar:**
+- Mimari kararlar (haftalik toplanti)
+- Code review (pull request bazli)
+- Sartname uyumu takibi
+- Final donemi YZ hizlandirici RTL gerc0eklemesi
+
+**Danisman Dr. Fatih Gul:**
+- Teknik yonlendirme ve mentorluk
+- Akademik dogrulama
+- Endustri baglantilari
+
+### 17.3 Calisma Metodolojisi
+
+**Git workflow:**
+- Feature branch / commit per milestone
+- Annotated tag (sigorta noktalari): `dtr-pre-axi-m17`, 
+  `m22-axi-slaves-done`, `dtr-pre-faz7`, `dtr-pre-uart-rx`
+- Detayli commit mesajlari (her birinde milestone numarasi + kazanim)
+- 74+ commit, 16 May 2026 itibariyle
+
+**Iletisim:**
+- GitHub Issues (teknik tartisma)
+- Haftalik yuz yuze toplanti
+- WhatsApp grup (hizli koordinasyon)
+
+**AI asistan destegi:**
+Anthropic Claude AI asistani **RTL gelistirme**, **debug**, 
+**Verilator entegrasyonu** ve **dokumantasyon** asamalarinda 
+kullanildi (sartname tarafindan musaade edilen kapsamda).
