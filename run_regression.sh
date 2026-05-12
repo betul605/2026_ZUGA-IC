@@ -69,6 +69,7 @@ run_test "gpio_axi"        "M19" "build_gpio_axi.sh"         5
 run_test "timer_axi"       "M20" "build_timer_axi.sh"        5
 run_test "uart_axi"        "M21" "build_uart_axi.sh"         6
 run_test "uart_dual_axi"   "M31" "build_uart_dual_axi.sh"    6
+run_test "uart_rx_axi"     "M53" "build_uart_rx_axi.sh"      5
 run_test "i2c_master_axi"  "M22" "build_i2c_axi.sh"          5
 
 # ============================================================================

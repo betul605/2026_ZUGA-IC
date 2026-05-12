@@ -105,7 +105,8 @@ module uart_dual_axi_tb;
         .axi_rready_i (u0_rready),
         .axi_rdata_o  (u0_rdata),
         .axi_rresp_o  (u0_rresp),
-        .tx_o         (u0_tx)
+        .tx_o         (u0_tx),
+        .rx_i         (1'b1)             // RX idle (Dual UART TX testi)
     );
 
     // UART-1 instance (YZ Stream)
@@ -131,7 +132,8 @@ module uart_dual_axi_tb;
         .axi_rready_i (u1_rready),
         .axi_rdata_o  (u1_rdata),
         .axi_rresp_o  (u1_rresp),
-        .tx_o         (u1_tx)
+        .tx_o         (u1_tx),
+        .rx_i         (1'b1)             // RX idle (Dual UART TX testi)
     );
 
     initial clk = 0;
