@@ -1283,56 +1283,111 @@ cozuldu. Diger iki onemli ekleme (Boot ROM M29, Dual UART M31)
 
 ## 9. FPGA Hazirligi (Sablon Bolum 2.4: FPGA Prototipleme, 5p)
 
-[KAYNAK: M09 + M10]
+DTR donemi sonunda **soc_top_axi.sv (M49)** tam AXI4-Lite SoC entegrasyonu
+tamamlanmis ve Vivado FPGA sentezi icin hazirlik **tamamlanmistir**. Sentez
+seansi 13-14 Mayis 2026'da Umur Bugra Dikmen ile gerc0eklestirilecek olup
+**utilization, timing analizi ve schematic** sonuclari Vivado ekran
+goruntuleri ile teslime kadar DTR'ye eklenecektir.
 
-### 9.1 Sentezlenebilir RTL
+### 9.1 Hazirlik Durumu (12 Mayis itibariyle)
 
-[KAYNAK: M09]
+| Bilesen | Durum | Detay |
+|---------|-------|-------|
+| Top module RTL | TAMAM | soc_top_axi.sv M49, 520 satir, lint TEMIZ |
+| CV32E40P entegrasyonu | TAMAM | OpenHW Group resmi RTL |
+| OBI->AXI4-Lite Bridge | TAMAM | obi_to_axi_lite.sv M17, 200 satir, 12/12 PASS |
+| 6 AXI4-Lite slave | TAMAM | DRAM + GPIO + Timer + UART-0 + UART-1 + I2C |
+| Constraint dosyasi | TAMAM | constraints/arty_a7.xdc, 56 satir |
+| Memory map | TAMAM | OTR Tablo 1 birebir |
+| Lint kontrolu | TEMIZ | 0 hata, 0 uyari (ZUGA-IC kodu) |
+| Vivado sentez | BEKLEMEDE | 13-14 May, Umur ile |
 
-UART Faz 2'de gerc0ek 10-bit TX state machine + baud rate generator
-eklendi. tx_o pin output. $write debug "synthesis translate_off"
-direktifleri ile sentez disinda tutuldu. Sonuc: Vivado/Yosys
-sentez aracları RTL'i sorunsuz isleyebilir.
+### 9.2 Hedef FPGA Platformu
 
-### 9.2 Top-Level Wrapper (M10)
+- **FPGA Kartı:** Xilinx Arty A7-100T (Digilent)
+- **FPGA Yongasi:** XC7A100TCSG324-1 (Artix-7, 101440 logic cell)
+- **Hedef saat:** 50 MHz (CV32E40P tipik calisma frekansi)
+- **Cevre baglantilari:** USB-UART kopru, 4 LED, 4 switch, 4 push button
 
-[KAYNAK: M10]
+Arty A7-100T sec0imi: CV32E40P RV32IM icin yeterli kaynak (~10K LUT tahmini),
+USB-UART kopru entegre (terminal log icin pratik), maliyet erisilebilir
+(~$100), TEKNOFEST gec0miste benzer kartlari onerdi.
 
-rtl/fpga_top.sv (87 satir):
-- 100 MHz sysclk -> 50 MHz cekirdek saati (/2 divider)
-- Reset 2-flop senkronizator + 16-bit debounce (~1.3 ms)
-- 4 LED + 4 switch -> SoC GPIO (16-bit)
-- UART tx_o -> USB-UART kopru pin
-- soc_top instantiation
+### 9.3 Top Module: soc_top_axi.sv (M49, Faz 7)
 
-### 9.3 Pin Atamalari
+soc_top_axi.sv (520 satir) Harvard mimari uzerine kurulmustur:
 
-[KAYNAK: constraints/arty_a7.xdc]
+- **Instr port:** Basit BRAM (Boot ROM 128 word + IRAM 2048 word, sentez sirasinda BRAM inferred)
+- **Data port:** AXI4-Lite Bridge -> AXI4-Lite Decoder -> 6 slave
+- **6 AXI4-Lite slave:** Memory Map OTR Tablo 1 ile birebir uyumlu
+  - 0x0002_0000: DRAM (8 KB)
+  - 0x4000_0000: GPIO (8 B)
+  - 0x4000_1000: Timer (32 B)
+  - 0x4000_2000: UART-0 (20 B, RX+TX)
+  - 0x4000_3000: UART-1 (20 B, Stream)
+  - 0x4000_4000: I2C Master (20 B)
 
-12 pin atama:
-- sysclk: E3 (100 MHz)
-- cpu_resetn: D9 (reset push button)
-- uart_tx: D10 (USB-UART kopru)
-- led[3:0]: H5, J5, T9, T10
-- sw[3:0]: A8, C11, C10, A10
+**Lint sonucu:** `lint_soc_top_axi.sh` script'i ZUGA-IC kodumuzda **0 hata 0 uyari** vermistir (CV32E40P upstream BLKANDNBLK uyarilari Verilator-spesifik, Vivado sentez aracını engellemez). Kanit: docs/screenshots/17_soc_top_axi_lint.png
 
-Clock constraint: 10 ns periyot, LVCMOS33 IO standard, 3.3V CFGBVS.
+### 9.4 Constraint Dosyasi (arty_a7.xdc)
 
-### 9.4 Sentez Akisi
+constraints/arty_a7.xdc (56 satir) Arty A7-100T tum pin atamalarini ic0erir:
+- **System clock:** E3 (100 MHz, /2 ile 50 MHz cekirdek)
+- **Reset:** D9 (cpu_resetn, push button)
+- **UART:** D10 (uart_tx), A9 (uart_rx)
+- **LED:** H5, J5, T9, T10 (4 LED)
+- **Switch:** A8, C11, C10, A10 (4 switch)
+- **Push button:** D9, C9, B9, B8 (4 PB)
+- **IO standard:** LVCMOS33, CFGBVS 3.3V
+- **Timing constraint:** create_clock 10 ns periyot
 
-Hafta sonu (3-4 May) Umur Bugra ile yapilacak:
-1. Vivado 2023.x ac
-2. RTL Project olustur, Part: xc7a100tcsg324-1
-3. Tum RTL dosyalari ekle (cv32e40p_*.sv + bizim 6 dosya)
-4. fpga_top.sv'yi TOP olarak isaretle
-5. arty_a7.xdc constraints olarak ekle
-6. Run Synthesis
-7. Sentez raporu (kaynak kullanim, kritik yol) DTR'ye eklenir
+### 9.5 Vivado Sentez Adimlari (Planli)
 
-Hedef: "Sentez basarili" gormek. Bitstream ve gerc0ek demo final
-teslim icin (Agustos 2026).
+1. **Vivado 2023.1 ac, RTL Project olustur**
+2. **Part sec:** XC7A100TCSG324-1
+3. **RTL ekleme sirasi (paket bagimliligi kritik!):**
+   - cv32e40p_pkg.sv, cv32e40p_apu_core_pkg.sv, cv32e40p_fpu_pkg.sv (paketler ONCE)
+   - cv32e40p_*.sv (15 modul)
+   - obi_to_axi_lite.sv
+   - ram_axi.sv, gpio_axi.sv, timer_axi.sv, uart_axi.sv, i2c_master_axi.sv
+   - soc_top_axi.sv (TOP MODULE!)
+4. **Constraint ekle:** arty_a7.xdc
+5. **Run Synthesis (1-2 dk surer)**
+6. **Beklenen ciktilar:**
+   - Utilization Report (LUT/FF/BRAM/DSP kullanim)
+   - Timing Summary (50 MHz hedef met edildi mi?)
+   - Schematic (post-synth)
+   - Synthesis log (warnings/errors)
 
----
+### 9.6 Beklenen Sonuclar (Tahmini)
+
+| Metrik | Tahmin | Gerekc0e |
+|--------|--------|----------|
+| LUT | ~8000-12000 | CV32E40P tipik (kucuk RV32IM) + 6 AXI slave |
+| FF | ~6000-9000 | Pipeline + buffer registerlari |
+| BRAM | ~5-10 | Boot ROM + IRAM + DRAM + buffers |
+| DSP | 4 | CV32E40P multiplier |
+| Maks frekans | 50+ MHz | Hedef met (CV32E40P kanitlanmis) |
+| Slack | pozitif | Timing temiz beklenir |
+
+### 9.7 Vivado Sonrasi Eklenecek Screenshot'lar
+
+Vivado sentez seansi sonrasi DTR'ye eklenecek 3 yeni gorsel:
+- 21_vivado_synthesis_summary.png (utilization tablosu)
+- 22_vivado_timing_report.png (slack ve max frequency)
+- 23_vivado_schematic.png (post-synth blok diyagrami)
+
+Bu eklemelerle DTR Bolum 9 sablon §2.4 FPGA Prototipleme **5p tam karsilanir**.
+
+### 9.8 FPGA Bitstream ve Demo (Final Donemi)
+
+Bitstream uretimi ve gerc0ek Arty A7-100T uzerinde calistirma **Final donemi**
+(1-21 Haziran 2026) hedefidir. Bu asamada:
+- bitstream uretimi (.bit dosyasi)
+- FPGA programlama (Digilent USB cable)
+- LED hello world demo (UART'tan 'A' karakteri + LED toggle)
+- UART RX gerc0ek terminal testi (5/5 PASS demo gerc0ek donanim uzerinde)
+
 
 ## 10. Sartname Odul Kriterleri Durumu (Sablon disi - sartname uyum izleme)
 
