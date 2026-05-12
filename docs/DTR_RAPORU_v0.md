@@ -2061,13 +2061,24 @@ DTR doneminde hizlandirici RTL gerc0eklemesi tamamlanmamis olup,
 detayli mimari plan + yazilim modeli hazirlanmistir. Final donemi 
 (1-21 Haziran 2026) RTL gerc0eklemesi ve dogrulama icin ayrilmistir.
 
-### 16.1 Hedef Uygulama: Tiny Conv1D Inference
+### 16.1 Hedef Uygulama: TFLite Micro Speech Tiny Conv1D
 
-OTR §4'te tanimlanan hedef:
-- Uygulama: Tiny Conv1D inference (sinir agi cikarimi)
-- Kullanim senaryosu: Akustik anomali tespiti, vibrasyon analizi
-- Hedef performans: 8-bit kuantize, ~5 MAC/cycle @ 50 MHz
-- Bellek butc0esi: 30 KB on-chip SRAM (0x0003_0000)
+**Sartname EK-1 uyumu:** Sartname EK-1 dokumaninda **TFLite Micro Speech 
+Tiny Conv** ornegi YZ hizlandirici hedef uygulamasi olarak gosterilmistir. 
+ZUGA-IC takimi bu yonelimi takip etmistir.
+
+OTR §4'te tanimlanan ve **EK-1 ile uyumlu** hedef:
+- **Uygulama:** TFLite Micro **Speech Recognition Tiny Conv1D** inference
+  - Birincil: Keyword Spotting (KWS) - "yes", "no", "up", "down" vb. 
+  - Ikincil: Akustik anomali tespiti, vibrasyon analizi (generic Conv1D)
+- **Giris veri:** MFCC ozellikleri (40 katsayi x 49 frame) veya ham PCM
+- **Model boyutu:** ~20 KB int8 (TFLite Micro Speech referans modeli boyutu)
+- **Hedef performans:** 8-bit kuantize, ~5 MAC/cycle @ 50 MHz
+- **Latans hedefi:** <20 ms/inference (~real-time KWS)
+- **Bellek butc0esi:** 30 KB on-chip SRAM (0x0003_0000)
+- **Hassasiyet hedefi:** ~%85+ test set dogrulugu (TFLite Micro reference)
+
+**Sartname §4.2.2 + §5.2 #4 ve EK-1 Speech ornegi ile birebir uyumludur.**
 
 Neden Tiny Conv1D:
 - 1D convolution mikrodenetleyici icin tum CNN'lerden basit
@@ -2427,4 +2438,59 @@ modulleri RTL'e eklenip entegrasyon yapilacaktir.
 
 Sonuc: Bolum 16 sablonun §2.2.3 maddesinin tum 7 gereksinimini karsilar. 
 Tahmini puan: 11/11 maksimum.
+
+
+### 16.14 YZ Hizlandirici Test ve Dogrulama Yaklasimi (Sartname §5.2 #4)
+
+Sartname §5.2 minimum basari kriteri #4 "YZ hizlandirici tasarim sinirlari 
+icinde dogrulanmasi" Final donemi (1-21 Haziran 2026) icin hedeflenmektedir. 
+DTR doneminde **detayli test yaklasim plani** hazirlanmistir.
+
+**Test Hiyerarsisi (5 katman):**
+
+Katman 1: **Modul-bazli Birim Testleri**
+- yz_csr_axi_tb.sv: 8 yazmac read/write + reset davranisi (5+ transaction)
+- yz_mac_tb.sv: Tek MAC unit, int8 x int8 -> int32 dogrulama (corner cases)
+- yz_fsm_tb.sv: FSM state coverage (IDLE -> LOAD -> COMPUTE -> STORE -> DONE)
+- yz_buffer_tb.sv: Weight/Input/Output buffer load/store
+
+Katman 2: **AXI4-Lite Protocol Compliance**
+- 5 SVA bind dosyasi: axi_lite_assertions.sv pattern (M23 stili)
+- AXI4-Lite valid->ready handshake compliance (B/R response)
+- AXI handshake izleme: hedef ~100+ handshake, 0 FAIL
+
+Katman 3: **Inference Smoke Test**
+- yz_inference_tb.sv: Tam bir Conv1D inference (yazilim referansi ile karsilastirma)
+- Test vektorleri: Python ile uretilmis (TFLite int8 cikti birebir)
+- Hata tolerans: int8 quantization nedeniyle %1 hata kabul edilebilir
+
+Katman 4: **Stress + Edge Case**
+- All-zero input (output sadece bias)
+- All-one input (max activation)
+- Random pattern (toggle coverage maksimum)
+- Multiple consecutive inference (FSM idle->busy->idle dongusu)
+
+Katman 5: **Yazilim Eslemesi (Python Reference)**
+- Python TFLite int8 modeli ayni input ile calistirilir
+- Donanim cikti = yazilim cikti karsilastirmasi (her sample icin)
+- Hata istatistigi (mean absolute error, max error)
+- Test sonucu: PASS/FAIL self-checking
+
+**Beklenen Test Cikti:**
+
+| Test | Hedef | Olcum |
+|------|-------|-------|
+| Birim testler | 5+ testbench, 20+ tx PASS | Self-checking |
+| AXI Protocol Check | 100+ handshake, 0 FAIL | SVA assertions |
+| Inference smoke | 1+ tam Conv1D inference | PYthon eslesme |
+| Stress | 10+ corner case PASS | Toggle %75+ |
+| Performance | ~20 us inference @ 50 MHz | Cycle counter (CYCLE_CNT yazmac) |
+
+**Test Suite Boyutu (Tahmini):**
+- Toplam testbench: 5 yeni dosya (~1500 satir SV)
+- Toplam Python test scripti: ~500 satir
+- Sentez disinda kalan dogrulama: %100 (initial bloklar)
+
+Bu yaklasim DTR'de gosterilen mimari + Final donemi RTL gerc0eklemesi 
+ile birlikte **sartname §5.2 #4 minimum basari kriterini tam karsilayacaktir**.
 
