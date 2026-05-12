@@ -157,3 +157,66 @@ non-blocking sorunlu. Cozum: `wait (axi_awready && axi_wready)`
 5. Kapak + Icindekiler (30 dk)
 6. PDF + format kontrol (3-4 saat)
 
+
+### 11 May Aksam (Devam) - Sablon Uyum Maraton (M55-M58)
+
+**Sablon paylasildi ve DTR sablon yapisina uyarlandi.**
+
+**M55: README guncellemesi**
+- Badge 39 -> 72 commit, 39 -> 54 milestone
+- AXI tests 100+ -> 117+
+- Asama tablosuna M27-M54 satirlari (DTR dalgasi + FAZ 7 + UART RX + sablon)
+- 446 -> 464 satir
+
+**M56: Kapak + Icindekiler**
+- Sablon formati kapak (CIP TASARIM YARISMASI / MIKRODENETLEYICI / DETAY TASARIM RAPORU)
+- Takim tablosu + danisman + GitHub link
+- Icindekiler sablon 7 ana bolum + alt + 100p dagilim
+- \newpage page break
+- DTR 2228 -> 2266 satir
+
+**M57: Sablon indekslemesi + Takim Org bolumu**
+- 13 ana bolume sablon karsiligi etiketi (Bolum 1->§1, 3->§2.1, vb.)
+- Duplikat Bolum 15 Kaynakca silindi (106 satir tekrar)
+- Bolum 17 Takim Organizasyonu eklendi (Sablon §5, 3p)
+  - 17.1 Takim Tanimi (1p)
+  - 17.2 Gorev Dagilimi (2p): Umur Kaptan + Betul Gelistirici
+  - 17.3 Calisma Metodolojisi (git workflow + AI asistan)
+- DTR 2266 -> 2227 satir (net cleanup)
+
+**M58: YZ Hizlandirici Bolum 16 guclendirme (sablon §2.2.3 11p MAKSIMUM!)**
+
+4 yeni alt bolum eklendi:
+- 16.10 Performans-Alan-Guc Tahminleri
+  - Sky130 PDK: ~0.05 mm² alan tahmini
+  - Guc: ~0.5 mW aktif, ~50 uW idle
+  - Performans: 4-8 MAC/cycle @ 50 MHz
+- 16.11 Modelden RTL Mermaid Diyagrami (14 dugum)
+  - Yazilim asamasi (1-4): TF -> Quant -> TFLite -> C array
+  - Donanim asamasi (5-9): CSR -> FSM -> MAC -> ReLU -> Output
+  - Kaynak: docs/diagrams_mmd/05_yz_dataflow.mmd
+- 16.12 GitHub link + Final klasor yapisi planli
+- 16.13 Sablon §2.2.3 uyum tablosu (7/7 gereksinim TAMAM)
+
+DTR 2227 -> 2367 satir (+140)
+
+**DTR son durum:**
+- 2367 satir, 17 bolum (16 + Takim Organizasyonu)
+- 18 gorsel kanit
+- 76 commit, 4 annotated tag
+- Sablon 11/12 bolum karsilanmis (sadece §2.4 FPGA Vivado bekliyor)
+
+**Tahmini DTR puani: 93-97 / 100** (Vivado sentez sonrasi 98-100!)
+
+**Bugun toplam (M27-M58, 32 milestone):**
+- DTR 855 -> 2367 satir (%177 buyume!)
+- +21 puan garanti (Cip Akisi 5p + Kaynakca 2p + YZ 11p + Takim Org 3p)
+- Faz 7 (M49) + UART RX (M53) = 2 BUYUK kazanim
+- Sablon uyum %92 (11/12)
+
+**Kalan kritik isler (15 May teslime 4 gun):**
+1. DTR PDF uretimi (pandoc, 1 saat)
+2. Vivado sentez (Umur ile, hafta sonu)
+3. DDK testbench geldiginde ./dtr_demo dizini (ELEME kriteri)
+4. Son revizyon
+
