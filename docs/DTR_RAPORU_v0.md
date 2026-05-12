@@ -2313,8 +2313,17 @@ Bu akis 2 ana asamadan olusur:
 - DONE flag ile sonucun CPU'ya bildirilmesi
 
 Diyagram **GitHub'da otomatik render** edilir (mermaid syntax). 
-PDF export icin **docs/diagrams_mmd/05_yz_dataflow.mmd** dosyasi 
-Final donemi basinda olusturulup PNG'ye export edilecektir.
+PDF export icin **docs/diagrams_mmd/05_yz_dataflow.mmd** dosyasi mermaid.live 
+uzerinden PNG'ye export edilmistir:
+
+**Sekil 5: YZ Hizlandirici Veri Akis Diyagrami**
+
+![YZ Veri Akisi](docs/screenshots/20_yz_dataflow.png)
+
+Bu diyagram **mermaid.live PNG export** ile uretilmistir, kaynak dosyasi 
+`docs/diagrams_mmd/05_yz_dataflow.mmd` (14 satir). DTR'nin 5. ve son Mermaid 
+gorsel diyagrami olup, **YZ §2.2.3 sablonu** gorsel kanit gereksinimini 
+karsilar.
 
 
 ### 16.12 RTL Kaynak ve GitHub Linki
