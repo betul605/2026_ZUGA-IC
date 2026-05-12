@@ -220,3 +220,51 @@ DTR 2227 -> 2367 satir (+140)
 3. DDK testbench geldiginde ./dtr_demo dizini (ELEME kriteri)
 4. Son revizyon
 
+
+### 12 May (Devam) - Regression Maraton (M59-M60)
+
+**Test kanitlarini guclendirme calismasi.**
+
+**M59: Regression Suite 9/9 PASS (54 tx, 113 hs)**
+
+Yapilanlar:
+- uart_dual_axi_tb.sv'de rx_i bagli degildi (M53'te uart_axi.sv'ye rx_i 
+  portu eklemistik, dual UART testbench kalmis) -> 1'b1 idle baglandi
+- build_uart_rx_axi.sv yeni script (UART RX bagimsiz build)
+- run_regression.sh'a UART RX satiri eklendi
+- Sonuc: 9/9 PASS, 54 transaction, 113 handshake
+- Screenshot 19_regression_9_9_pass.png alindi
+
+Regression detayi:
+| Testbench | Milestone | Transaction | Handshake |
+|-----------|-----------|-------------|-----------|
+| axi_bridge | M17 | 12 | 0 |
+| ram_axi | M18 | 4 | 20 |
+| boot_rom_axi | M29 | 6 | 12 |
+| gpio_axi | M19 | 5 | 12 |
+| timer_axi | M20 | 5 | 31 |
+| uart_axi | M21 | 6 | 0 |
+| uart_dual_axi | M31 | 6 | 38 |
+| uart_rx_axi | M53 | 5 | 0 |
+| i2c_master_axi | M22 | 5 | 0 |
+| **TOPLAM** | | **54** | **113** |
+
+**M60: DTR'ye 9/9 PASS yansitildi**
+- 4 yer "8/8 PASS" -> "9/9 PASS"
+- 49 -> 54 transaction (4 yer)
+- Bolum 7.8 Regression Suite + Bolum 10 Sartname tablosu guncellendi
+- Screenshot 19 referansli
+
+**Bugun toplam (M27-M60, 34 milestone):**
+- 79 commit, 19 gorsel kanit
+- DTR 855 -> 2366 satir (%177 buyume!)
+- +21 puan garanti
+- Faz 7 + UART RX + YZ MAKSIMUM
+- Sablon 11/12 uyum
+
+**Kalan kritik isler:**
+1. Vivado sentez (Umur ile, hafta sonu)
+2. DDK testbench dizini (./dtr_demo, eleme!)
+3. DTR final revizyon (tutarlilik)
+4. PDF uretimi (pandoc)
+
