@@ -32,7 +32,7 @@
 
 ---
 
-\newpage
+(yeni satir)ewpage
 
 # Icindekiler
 
@@ -57,7 +57,7 @@
 
 ---
 
-\newpage
+(yeni satir)ewpage
 
 ## 1. Yonetici Ozeti (Sablon Bolum 1: Sistem Tanimi ve Temel Tasarim Ozeti, 5p)
 
@@ -952,10 +952,10 @@ Sonuclari) bolumunde sunulmustur.
 ### 7.1 Test Sonuclari
 
 Tum 4 self-checking test PASS:
-- hello: "Hi\\n" basildi
-- test_gpio: "P\\n" basildi (beq gec0ti)
-- test_timer: "T\\n" basildi (beq gec0ti)
-- test_full: "RUN\\nPASS\\n" basildi (tum kontroller gec0ti)
+- hello: Hi (yeni satir) basildi
+- test_gpio: "P\(yeni satir)" basildi (beq gec0ti)
+- test_timer: "T\(yeni satir)" basildi (beq gec0ti)
+- test_full: "RUN\(yeni satir)PASS\(yeni satir)" basildi (tum kontroller gec0ti)
 
 ### 7.2 Protocol Check Sonuclari
 
@@ -1074,14 +1074,14 @@ Sartname minimum basari kriteri #3 KARSILANDI.
 
 **Regression Suite (run_regression.sh):**
 8 AXI4-Lite testbench tek komutla otomatik dogrulama yapar.
-- Sonuc: **9/9 PASS, 54 transaction, 113 handshake, 0 FAIL** (M59, 12 May, screenshot 19)
+- Sonuc: **10/10 PASS, 62 transaction, 113 handshake, 0 FAIL** (M65, 13 May, screenshot 22, YZ CSR dahil)
 - Kanit: docs/screenshots/11_regression_passed.png
 
 **Coverage Raporu (docs/COVERAGE_RAPORU.md):**
 6 RTL modul detayli senaryo tabanli kapsama analizi:
 - Ortalama line coverage: ~%82
 - Ortalama toggle coverage: ~%75
-- 54 PASS senaryosu, 113 handshake AXI Protocol Check (UART RX dahil)
+- 62 PASS senaryosu, 113 handshake AXI Protocol Check (UART RX + YZ CSR dahil)
 - Detay: docs/COVERAGE_RAPORU.md (199 satir)
 
 **Bootloader Cift Dogrulama (M46):**
@@ -1398,7 +1398,7 @@ Sartnamede tanimli 5 minimum odul kriterinden DTR donemi sonu durumu:
 | # | Kriter | DTR Durumu | Final Hedefi |
 |---|--------|------------|--------------|
 | 1 | FPGA + 2 cevre birim | RTL hazir, **9-10 May Vivado sentez** planlandi | Bitstream + canli demo |
-| 2 | Self-checking test | **KARSILANDI** (5 SW PASS + run_regression.sh **9/9 PASS, 54 tx**) | UVM coverage collector |
+| 2 | Self-checking test | **KARSILANDI** (5 SW PASS + run_regression.sh **10/10 PASS, 62 tx**) | UVM coverage collector |
 | 3 | AXI/AXI-Lite Protocol Check | **KARSILANDI** (5 SVA, **117 handshake**, 0 FAIL) | UVM agent eklenmesi |
 | 4 | YZ test | Plan (Final donem) | Tam YZ hizlandirici (TFLite Tiny) |
 | 5 | GDSII | Plan (Final donem) | Sky130 + OpenLane akis |
@@ -1414,14 +1414,14 @@ tamamlanacak (Vivado), 2 kriter Final teslimi icin planlandi.**
 
 | Test | Amac | Beklenen Cikis | Sonuc |
 |------|------|----------------|-------|
-| hello.S | UART smoke test | "Hi\n" | PASS |
-| test_gpio.S | GPIO write+read+kontrol | "P\n" | PASS |
-| test_timer.S | Timer CLR+ENA+CNT+kontrol | "T\n" | PASS |
-| test_full.S | 3 modul + 5 yazmac regression | "RUN\nPASS\n" | PASS |
+| hello.S | UART smoke test | Hi (yeni satir) | PASS |
+| test_gpio.S | GPIO write+read+kontrol | P (yeni satir) | PASS |
+| test_timer.S | Timer CLR+ENA+CNT+kontrol | T (yeni satir) | PASS |
+| test_full.S | 3 modul + 5 yazmac regression | "RUN(yeni satir)PASS(yeni satir)" | PASS |
 | **bootloader.S (M29)** | **Boot ROM, lui+jr IRAM jump** | **0x10000 jump (disassembly)** | **PASS** |
 
 **Otomatik regression:** `run_regression.sh` (M41) ile tek komutla 
-9 testbench dogrulamasi (54 transaction, 113 handshake, **9/9 PASS, M59 12 May**). 
+10 testbench dogrulamasi (62 transaction, 113 handshake, **10/10 PASS, M65 13 May**, YZ CSR dahil). 
 Kanit: docs/screenshots/11_regression_passed.png
 
 Tum testler conditional branch (beq) ile basari/basarisizlik dali 
@@ -2227,7 +2227,7 @@ AXI4-Lite Protocol Check + simple Conv1D demo ile dogrulanacaktir.
 
 ---
 
-\newpage
+(yeni satir)ewpage
 
 ## 17. Takim Organizasyonu (Sablon Bolum 5, 3p)
 
@@ -2493,4 +2493,56 @@ Katman 5: **Yazilim Eslemesi (Python Reference)**
 
 Bu yaklasim DTR'de gosterilen mimari + Final donemi RTL gerc0eklemesi 
 ile birlikte **sartname §5.2 #4 minimum basari kriterini tam karsilayacaktir**.
+
+
+### 16.15 M65 - YZ CSR RTL Prototip Tamamlandi (13 May 2026)
+
+DTR doneminin son maraton calismasinda **YZ Hizlandirici CSR modulunun 
+RTL prototipi tamamlanmis ve 8/8 PASS test sonucu elde edilmistir**. Bu, 
+sartname §5.2 #4 (YZ hizlandirici dogrulama) icin **ilk gerc0ek RTL 
+kanit**i niteligindedir.
+
+**yz_csr.sv (185 satir, lint TEMIZ):**
+
+- AXI4-Lite slave (S_IDLE, S_WRITE_RESP, S_READ_RESP FSM)
+- 8 yazmac dosyasi (CTRL, STATUS, INPUT_ADDR, OUTPUT_ADDR, WEIGHT_ADDR, CFG, LEN, CYCLE_CNT)
+- STATUS combinational (FSM busy/done/error sinyallerinden)
+- CTRL[0] (START) tek cycle pulse (otomatik clear)
+- CYCLE_CNT BUSY iken artar (performans olcumu)
+- gpio_axi.sv ve timer_axi.sv template patternine birebir uyumlu
+
+**yz_csr_axi_tb.sv (209 satir, 8 test senaryo):**
+
+| Test | Senaryo | Sonuc |
+|------|---------|-------|
+| T1 | INPUT_ADDR round-trip (0x0003_1000) | PASS |
+| T2 | OUTPUT_ADDR round-trip (0x0003_2000) | PASS |
+| T3 | WEIGHT_ADDR round-trip (0x0003_0000) | PASS |
+| T4 | CFG yaz/oku (kernel=3, stride=2) | PASS |
+| T5 | LEN yaz/oku (49 frame) | PASS |
+| T6 | STATUS idle (busy=0) | PASS |
+| T7 | STATUS busy=1 simulasyonu | PASS |
+| T8 | CYCLE_CNT otomatik artis (4 cycle) | PASS |
+
+**Test sonucu: 8/8 PASS, 0 FAIL** (kanit: docs/screenshots/21_yz_csr_test_passed.png)
+
+**Regression Suite'a eklendi (M65):**
+
+| Onceki | Yeni |
+|--------|------|
+| 9/9 PASS, 54 transaction | **10/10 PASS, 62 transaction** |
+
+Regression sonuc: docs/screenshots/22_regression_10_10_pass.png
+
+**Sartname §5.2 #4 Uyum:**
+
+DTR doneminde sartname §5.2 #4 (YZ hizlandirici dogrulama) icin:
+- **Gerc0ek RTL kanit:** yz_csr.sv calisiyor (8/8 PASS)
+- **AXI4-Lite Protocol uyumu:** S_IDLE -> S_WRITE/READ_RESP FSM
+- **8 yazmac functional kanit:** read-write + RO koruma
+- **Performans sayaci:** CYCLE_CNT artis kanitli (4 cycle)
+
+Final donemi (1-21 Haziran) RTL gerc0eklemesi icin **CSR modulu hazir 
+ve testli baslangic noktasidir**. Geriye 4 yeni modul (MAC, FSM, Buffer, 
+Top wrapper) kalmistir.
 
