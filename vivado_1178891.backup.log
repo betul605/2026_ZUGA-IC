@@ -3,8 +3,8 @@
 # SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Wed Jul 29 11:00:38 2026
-# Process ID         : 1210176
+# Start of session at: Wed Jul 29 10:36:58 2026
+# Process ID         : 1178891
 # Current directory  : /home/ubuntu/zuga-final
 # Command line       : vivado -mode batch -source build_fpga.tcl
 # Log file           : /home/ubuntu/zuga-final/vivado.log
@@ -13,13 +13,13 @@
 # Platform           : Ubuntu
 # Operating System   : Ubuntu 24.04.4 LTS
 # Processor Detail   : 12th Gen Intel(R) Core(TM) i5-12500H
-# CPU Frequency      : 4452.760 MHz
+# CPU Frequency      : 400.163 MHz
 # CPU Physical cores : 12
 # CPU Logical cores  : 16
 # Host memory        : 16473 MB
 # Swap memory        : 4294 MB
 # Total Virtual      : 20768 MB
-# Available Virtual  : 10660 MB
+# Available Virtual  : 10042 MB
 #-----------------------------------------------------------
 source build_fpga.tcl
 # set PART   xc7a200tsbg484-1
@@ -77,9 +77,9 @@ INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a200
 INFO: [Device 21-403] Loading part xc7a200tsbg484-1
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 7 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 1210336
+INFO: [Synth 8-7075] Helper process launched with PID 1179071
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 2293.547 ; gain = 481.844 ; free physical = 515 ; free virtual = 8775
+Starting RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 2296.750 ; gain = 482.594 ; free physical = 294 ; free virtual = 8549
 ---------------------------------------------------------------------------------
 WARNING: [Synth 8-11067] parameter 'OPCODE_SYSTEM' declared inside package 'cv32e40p_pkg' shall be treated as localparam [/home/ubuntu/zuga-final/cv32e40p/rtl/include/cv32e40p_pkg.sv:37]
 WARNING: [Synth 8-11067] parameter 'OPCODE_FENCE' declared inside package 'cv32e40p_pkg' shall be treated as localparam [/home/ubuntu/zuga-final/cv32e40p/rtl/include/cv32e40p_pkg.sv:38]
@@ -183,58 +183,19 @@ WARNING: [Synth 8-11067] parameter 'JT_JAL' declared inside package 'cv32e40p_pk
 WARNING: [Synth 8-11067] parameter 'JT_JALR' declared inside package 'cv32e40p_pkg' shall be treated as localparam [/home/ubuntu/zuga-final/cv32e40p/rtl/include/cv32e40p_pkg.sv:672]
 INFO: [Common 17-14] Message 'Synth 8-11067' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 WARNING: [Synth 8-6901] identifier 'rx_done_pulse' is used before its declaration [/home/ubuntu/zuga-final/rtl/uart_axi.sv:208]
-INFO: [Synth 8-6157] synthesizing module 'fpga_top_axi' [/home/ubuntu/zuga-final/rtl/fpga_top_axi.sv:10]
-INFO: [Synth 8-6157] synthesizing module 'soc_top_axi' [/home/ubuntu/zuga-final/rtl/soc_top_axi.sv:22]
-INFO: [Synth 8-3876] $readmem data file 'bootloader.hex' is read successfully [/home/ubuntu/zuga-final/rtl/soc_top_axi.sv:169]
-INFO: [Synth 8-6157] synthesizing module 'cv32e40p_core' [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_core.sv:31]
-	Parameter COREV_PULP bound to: 0 - type: integer 
-	Parameter COREV_CLUSTER bound to: 0 - type: integer 
-	Parameter FPU bound to: 0 - type: integer 
-	Parameter FPU_ADDMUL_LAT bound to: 0 - type: integer 
-	Parameter FPU_OTHERS_LAT bound to: 0 - type: integer 
-	Parameter ZFINX bound to: 0 - type: integer 
-	Parameter NUM_MHPMCOUNTERS bound to: 1 - type: integer 
-INFO: [Synth 8-6157] synthesizing module 'cv32e40p_sleep_unit' [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_sleep_unit.sv:56]
-	Parameter COREV_CLUSTER bound to: 0 - type: integer 
-INFO: [Synth 8-6157] synthesizing module 'cv32e40p_clock_gate' [/home/ubuntu/zuga-final/cv32e40p/bhv/cv32e40p_sim_clock_gate.sv:15]
-INFO: [Synth 8-6155] done synthesizing module 'cv32e40p_clock_gate' (0#1) [/home/ubuntu/zuga-final/cv32e40p/bhv/cv32e40p_sim_clock_gate.sv:15]
-INFO: [Synth 8-6155] done synthesizing module 'cv32e40p_sleep_unit' (0#1) [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_sleep_unit.sv:56]
-INFO: [Synth 8-6157] synthesizing module 'cv32e40p_if_stage' [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_if_stage.sv:28]
-	Parameter COREV_PULP bound to: 0 - type: integer 
-	Parameter PULP_OBI bound to: 0 - type: integer 
-	Parameter PULP_SECURE bound to: 0 - type: integer 
-	Parameter FPU bound to: 0 - type: integer 
-	Parameter ZFINX bound to: 0 - type: integer 
-INFO: [Synth 8-294] found qualifier unique on case statement: implementing as parallel_case [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_if_stage.sv:132]
-INFO: [Synth 8-294] found qualifier unique on case statement: implementing as parallel_case [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_if_stage.sv:138]
-INFO: [Synth 8-294] found qualifier unique on case statement: implementing as parallel_case [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_if_stage.sv:144]
-INFO: [Synth 8-294] found qualifier unique on case statement: implementing as parallel_case [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_if_stage.sv:159]
-INFO: [Synth 8-6157] synthesizing module 'cv32e40p_prefetch_buffer' [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_prefetch_buffer.sv:27]
-	Parameter PULP_OBI bound to: 0 - type: integer 
-	Parameter COREV_PULP bound to: 0 - type: integer 
-INFO: [Synth 8-6157] synthesizing module 'cv32e40p_prefetch_controller' [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_prefetch_controller.sv:40]
-	Parameter PULP_OBI bound to: 0 - type: integer 
-	Parameter COREV_PULP bound to: 0 - type: integer 
-	Parameter DEPTH bound to: 2 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'cv32e40p_prefetch_controller' (0#1) [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_prefetch_controller.sv:40]
-ERROR: [Synth 8-439] module 'cv32e40p_fifo' not found [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_prefetch_buffer.sv:127]
-	Parameter FALL_THROUGH bound to: 1'b0 
-	Parameter DATA_WIDTH bound to: 32'sb00000000000000000000000000100000 
-	Parameter DEPTH bound to: 2 - type: integer 
-ERROR: [Synth 8-6156] failed synthesizing module 'cv32e40p_prefetch_buffer' [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_prefetch_buffer.sv:27]
-ERROR: [Synth 8-6156] failed synthesizing module 'cv32e40p_if_stage' [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_if_stage.sv:28]
-ERROR: [Synth 8-6156] failed synthesizing module 'cv32e40p_core' [/home/ubuntu/zuga-final/cv32e40p/rtl/cv32e40p_core.sv:31]
-ERROR: [Synth 8-6156] failed synthesizing module 'soc_top_axi' [/home/ubuntu/zuga-final/rtl/soc_top_axi.sv:22]
-ERROR: [Synth 8-6156] failed synthesizing module 'fpga_top_axi' [/home/ubuntu/zuga-final/rtl/fpga_top_axi.sv:10]
+ERROR: [Synth 8-2716] syntax error near '--' [/home/ubuntu/zuga-final/rtl/fpga_top_axi.sv:33]
+INFO: [Synth 8-10285] module 'fpga_top_axi' is ignored due to previous errors [/home/ubuntu/zuga-final/rtl/fpga_top_axi.sv:75]
+INFO: [Synth 8-9084] Verilog file '/home/ubuntu/zuga-final/rtl/fpga_top_axi.sv' ignored due to errors
+ERROR: [Synth 8-12188] Failed to read verilog '/home/ubuntu/zuga-final/rtl/fpga_top_axi.sv'
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2387.516 ; gain = 575.812 ; free physical = 399 ; free virtual = 8664
+Finished RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2380.688 ; gain = 566.531 ; free physical = 241 ; free virtual = 8475
 ---------------------------------------------------------------------------------
 RTL Elaboration failed
 INFO: [Common 17-83] Releasing license: Synthesis
-23 Infos, 101 Warnings, 0 Critical Warnings and 7 Errors encountered.
+9 Infos, 101 Warnings, 0 Critical Warnings and 3 Errors encountered.
 synth_design failed
-synth_design: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2387.523 ; gain = 758.812 ; free physical = 399 ; free virtual = 8664
-INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 1662.051; main = 1417.181; forked = 244.870
-INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 3389.809; main = 2387.520; forked = 1002.289
+synth_design: Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 2380.695 ; gain = 726.719 ; free physical = 249 ; free virtual = 8483
+INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 1658.655; main = 1416.717; forked = 241.938
+INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 3382.980; main = 2380.691; forked = 1002.289
 ERROR: [Common 17-69] Command failed: Synthesis failed - please see the console or run log file for details
-INFO: [Common 17-206] Exiting Vivado at Wed Jul 29 11:00:47 2026...
+INFO: [Common 17-206] Exiting Vivado at Wed Jul 29 10:37:07 2026...
