@@ -92,17 +92,11 @@ module yz_csr_axi_tb;
 
     task automatic axi_write(input [31:0] addr, input [31:0] data);
         @(posedge clk);
-        axi_awvalid = 1;
-        axi_awaddr  = addr;
-        axi_awprot  = 0;
-        axi_wvalid  = 1;
-        axi_wdata   = data;
-        axi_wstrb   = 4'b1111;
+        axi_awvalid = 1; axi_awaddr = addr; axi_awprot = 0;
+        axi_wvalid  = 1; axi_wdata  = data; axi_wstrb = 4'b1111;
         wait (axi_awready && axi_wready);
         @(posedge clk);
-        axi_awvalid = 0;
-        axi_wvalid  = 0;
-        axi_bready = 1;
+        axi_awvalid = 0; axi_wvalid = 0; axi_bready = 1;
         wait (axi_bvalid);
         @(posedge clk);
         axi_bready = 0;
@@ -110,13 +104,10 @@ module yz_csr_axi_tb;
 
     task automatic axi_read(input [31:0] addr, output [31:0] data);
         @(posedge clk);
-        axi_arvalid = 1;
-        axi_araddr  = addr;
-        axi_arprot  = 0;
+        axi_arvalid = 1; axi_araddr = addr; axi_arprot = 0;
         wait (axi_arready);
         @(posedge clk);
-        axi_arvalid = 0;
-        axi_rready = 1;
+        axi_arvalid = 0; axi_rready = 1;
         wait (axi_rvalid);
         data = axi_rdata;
         @(posedge clk);
@@ -142,6 +133,7 @@ module yz_csr_axi_tb;
 
     initial begin
         logic [31:0] read_data;
+        logic [31:0] cc0;
 
         // Initial values
         axi_awvalid = 0; axi_awaddr = 0; axi_awprot = 0;
@@ -202,11 +194,40 @@ module yz_csr_axi_tb;
             fail = fail + 1;
         end
 
+        // --- Yonlendirilmis ek senaryolar (kapsam artirma) ---
+        // T9: CTRL START yaz -> tek cevrim pulse, otomatik temizlenir
+        axi_write(32'h0000_0000, 32'h0000_0001);
+        axi_read (32'h0000_0000, read_data);
+        check("CTRL START auto-clear", 32'h0000_0000, read_data);
+
+        // T10: CTRL sw_reset biti (CTRL[1]) yaz -> kalici, sonra temizle
+        axi_write(32'h0000_0000, 32'h0000_0002);
+        axi_read (32'h0000_0000, read_data);
+        check("CTRL sw_reset biti", 32'h0000_0002, read_data);
+        axi_write(32'h0000_0000, 32'h0000_0000);
+
+        // T11: RO STATUS'a yazma yok sayilmali
+        axi_write(32'h0000_0004, 32'hFFFF_FFFF);
+        axi_read (32'h0000_0004, read_data);
+        check("STATUS RO koruma", 32'h0000_0000, read_data);
+
+        // T12: RO CYCLE_CNT'e yazma yok sayilmali (deger degismemeli)
+        axi_read (32'h0000_001C, cc0);
+        axi_write(32'h0000_001C, 32'hDEAD_BEEF);
+        axi_read (32'h0000_001C, read_data);
+        check("CYCLE_CNT RO koruma", cc0, read_data);
+
+        // T13: done+error bayraklari STATUS'ta gorunmeli ({error,done,busy}=110=0x6)
+        done = 1; error = 1; @(posedge clk);
+        axi_read (32'h0000_0004, read_data);
+        check("STATUS done+error", 32'h0000_0006, read_data);
+        done = 0; error = 0;
+
         // Ozet
         $display("");
         $display("=== YZ CSR Test Sonuc ===");
-        $display("PASS: %0d / 8", pass);
-        $display("FAIL: %0d / 8", fail);
+        $display("PASS: %0d / %0d", pass, pass+fail);
+        $display("FAIL: %0d / %0d", fail, pass+fail);
         if (fail == 0) $display("====== ALL TESTS PASSED ======");
         else           $display("====== %0d TEST FAILED ======", fail);
 

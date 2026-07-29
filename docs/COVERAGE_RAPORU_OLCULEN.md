@@ -16,12 +16,16 @@
 | timer_axi.sv | 20/28 · %71.4 | 17/20 · %85.0 |
 | uart_axi.sv | 18/30 · %60.0 | 27/44 · %61.4 |
 | i2c_master_axi.sv | 24/42 · %57.1 | 35/52 · %67.3 |
-| yz_csr.sv | 20/46 · %43.5 | 13/24 · %54.2 |
-| yz_accel.sv | 18/40 · %45.0 | 44/80 · %55.0 |
+| yz_csr.sv | 23/46 · %50.0 | 15/24 · %62.5 |
+| yz_accel.sv | 18/40 · %45.0 | 45/80 · %56.2 |
 | yz_top.sv | 4/6 · %66.7 | 4/8 · %50.0 |
-| **TOPLAM** | **118/208 · %56.7** | **161/256 · %62.9** |
+| **TOPLAM** | **121/208 · %58.2** | **164/256 · %64.1** |
 
-Toggle (sinyal değişimi) toplam: 1290/5862 · %22.0
+Toggle (sinyal değişimi) toplam: 1323/5862 · %22.6
+
+**İlk ölçüm → güncel:** yönlendirilmiş test senaryoları eklenerek (yz_csr: tüm yazmaç R/W,
+RO koruma, START/sw_reset, done+error; yz_accel: sw_reset ile iptal + ikinci çıkarım)
+satır %56.7→%58.2, dal %62.9→%64.1; özellikle `yz_csr` satır %43.5→%50, dal %54.2→%62.5.
 
 ## Yorum ve hedef
 

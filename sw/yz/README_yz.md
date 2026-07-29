@@ -34,7 +34,19 @@ Beklenen çıktı: `===== YZ HIZLANDIRICI TEST PASSED ===== (HW == golden, bit-b
 - Donanım çıkarım süresi = **344013 çevrim** (~336000 MAC + FSM ek yükü)
 - Verilator lint: **0 uyarı**
 
+## Yazılım/donanım hızlanma (ölçülen)
+`sw/yz/yz_soft.c` — Tiny Conv'un **salt yazılım** (hızlandırıcısız) referansı; donanım/altın model ile
+**bit-bit aynı** logit'leri üretir (`[27076, -28255, 48488, 18675]`). Ölçüm: `./sw/yz/measure_speedup.sh`
+
+- Donanım çıkarım = **344.013 çevrim** (tb_yz_accel)
+- Yazılım (rv32imc, gcc -O2): conv sınır-içi MAC = 10 komut, fc MAC = 7 komut; kesin yineleme ile
+  yazılım ≈ **3.140.800 komut** (conv 285760×10 + padding 34240×5 + fc 16000×7)
+- **Hızlanma ≈ 9,1×** (komut/çevrim; CPI~1,2 ile ~11×) → EK-1 ">5× hızlanma" şartı karşılanır
+
+> Not: Bu, derlenmiş RISC-V kodundan analitik ve tekrar-üretilebilir bir tahmindir; çevrim-tam değer
+> yazılımın CV32E40P çekirdeğinde koşulup çevrim sayacının okunmasıyla elde edilir (SoC sim / Vivado).
+
 ## Sonraki adımlar (yol haritası)
-- SoC entegrasyonu: `yz_csr` + `yz_accel` → `yz_top` sarmalayıcı → `soc_top_axi` (0x5000_0000 CSR, 0x0003_0000 veri SRAM)
-- Yazılım referansı (RISC-V) ile ölçülmüş hızlanma (şu an donanım çevrimi gerçek; yazılım baz ölçülecek)
+- SoC entegrasyonu ✅ (`yz_csr` + `yz_accel` → `yz_top` → `soc_top_axi`, CSR 0x5000_0000, veri 0x50xx_xxxx)
+- Donanımlı C demosu (CPU YZ'yi sürer: MMIO yaz → START → IRQ → logit oku → UART) — SoC sim çıktısı
 - MAC datapath pipeline derinliği + çift tampon (throughput artışı)

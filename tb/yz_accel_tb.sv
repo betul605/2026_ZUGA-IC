@@ -98,6 +98,29 @@ module yz_accel_tb;
             $display("[TB] PASS argmax (siniflandirma) = %0d", argmax);
         end
 
+        // --- Ek senaryo (kapsam): sw_reset ile iptal + ikinci cikarim ---
+        // Yeni cikarim baslat, ortasinda sw_reset ile IDLE'a al (busy iken iptal dali)
+        @(negedge clk); start = 1; @(negedge clk); start = 0;
+        repeat (50) @(posedge clk);              // cikarim ortasi
+        @(negedge clk); sw_reset = 1; @(negedge clk); sw_reset = 0;
+        repeat (3) @(posedge clk);
+        if (busy) begin
+            $display("[TB] FAIL sw_reset sonrasi hala busy");
+            errors = errors + 1;
+        end else
+            $display("[TB] PASS sw_reset ile cikarim iptal edildi (busy=0)");
+
+        // Temiz ikinci cikarim -> ayni sonuc (yeniden-giris dali)
+        @(negedge clk); start = 1; @(negedge clk); start = 0;
+        i = 0; while (!done && i < 5_000_000) begin @(posedge clk); i = i + 1; end
+        logit_addr = 0; #1;
+        if (logit_rdata === exp[0])
+            $display("[TB] PASS ikinci cikarim logit0 = %0d", $signed(logit_rdata));
+        else begin
+            $display("[TB] FAIL ikinci cikarim logit0: HW=%0d golden=%0d", $signed(logit_rdata), exp[0]);
+            errors = errors + 1;
+        end
+
         $display("---------------------------------------------------------");
         if (errors == 0)
             $display("===== YZ HIZLANDIRICI TEST PASSED ===== (HW == golden, bit-bit)");
