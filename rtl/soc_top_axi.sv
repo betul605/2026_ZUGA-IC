@@ -43,6 +43,9 @@ module soc_top_axi (
     logic [3:0]  data_be;
     logic [31:0] data_addr, data_wdata, data_rdata;
 
+    // YZ hizlandirici kesme hatti (CPU fast-irq 16)
+    logic        yz_irq;
+
     // ------------------------------------------------------------------------
     // CV32E40P core
     // ------------------------------------------------------------------------
@@ -86,7 +89,7 @@ module soc_top_axi (
         .apu_rvalid_i       (1'b0),
         .apu_result_i       (32'h0),
         .apu_flags_i        (5'h0),
-        .irq_i              (32'b0),
+        .irq_i              ({15'b0, yz_irq, 16'b0}),  // YZ hizlandirici -> fast irq[16]
         .irq_ack_o          (),
         .irq_id_o           (),
         .debug_req_i        (1'b0),
@@ -212,6 +215,8 @@ module soc_top_axi (
     wire sel_uart0  = (m_awaddr[31:12] == 20'h40002) || (m_araddr[31:12] == 20'h40002);
     wire sel_uart1  = (m_awaddr[31:12] == 20'h40003) || (m_araddr[31:12] == 20'h40003);
     wire sel_i2c    = (m_awaddr[31:12] == 20'h40004) || (m_araddr[31:12] == 20'h40004);
+    // YZ hizlandirici: 0x50xx_xxxx penceresi (CSR 0x5000_0000 + veri bolgeleri)
+    wire sel_yz     = (m_awaddr[31:24] == 8'h50)      || (m_araddr[31:24] == 8'h50);
 
     // Her slave icin AXI4-Lite sinyalleri
     // DRAM
@@ -256,6 +261,13 @@ module soc_top_axi (
     logic [31:0] s_i2c_rdata;
     logic [1:0]  s_i2c_rresp;
 
+    // YZ hizlandirici
+    logic        s_yz_awvalid, s_yz_awready, s_yz_wvalid, s_yz_wready, s_yz_bvalid, s_yz_bready;
+    logic [1:0]  s_yz_bresp;
+    logic        s_yz_arvalid, s_yz_arready, s_yz_rvalid, s_yz_rready;
+    logic [31:0] s_yz_rdata;
+    logic [1:0]  s_yz_rresp;
+
     // AXI Master sinyallerini slave'lere dagit (AWVALID broadcast, sadece secilen slave AWREADY uretir)
     assign s_dram_awvalid  = m_awvalid & sel_dram;
     assign s_gpio_awvalid  = m_awvalid & sel_gpio;
@@ -263,6 +275,7 @@ module soc_top_axi (
     assign s_u0_awvalid    = m_awvalid & sel_uart0;
     assign s_u1_awvalid    = m_awvalid & sel_uart1;
     assign s_i2c_awvalid   = m_awvalid & sel_i2c;
+    assign s_yz_awvalid    = m_awvalid & sel_yz;
 
     assign s_dram_wvalid   = m_wvalid & sel_dram;
     assign s_gpio_wvalid   = m_wvalid & sel_gpio;
@@ -270,6 +283,7 @@ module soc_top_axi (
     assign s_u0_wvalid     = m_wvalid & sel_uart0;
     assign s_u1_wvalid     = m_wvalid & sel_uart1;
     assign s_i2c_wvalid    = m_wvalid & sel_i2c;
+    assign s_yz_wvalid     = m_wvalid & sel_yz;
 
     assign s_dram_arvalid  = m_arvalid & sel_dram;
     assign s_gpio_arvalid  = m_arvalid & sel_gpio;
@@ -277,6 +291,7 @@ module soc_top_axi (
     assign s_u0_arvalid    = m_arvalid & sel_uart0;
     assign s_u1_arvalid    = m_arvalid & sel_uart1;
     assign s_i2c_arvalid   = m_arvalid & sel_i2c;
+    assign s_yz_arvalid    = m_arvalid & sel_yz;
 
     assign s_dram_bready   = m_bready & sel_dram;
     assign s_gpio_bready   = m_bready & sel_gpio;
@@ -284,6 +299,7 @@ module soc_top_axi (
     assign s_u0_bready     = m_bready & sel_uart0;
     assign s_u1_bready     = m_bready & sel_uart1;
     assign s_i2c_bready    = m_bready & sel_i2c;
+    assign s_yz_bready     = m_bready & sel_yz;
 
     assign s_dram_rready   = m_rready & sel_dram;
     assign s_gpio_rready   = m_rready & sel_gpio;
@@ -291,6 +307,7 @@ module soc_top_axi (
     assign s_u0_rready     = m_rready & sel_uart0;
     assign s_u1_rready     = m_rready & sel_uart1;
     assign s_i2c_rready    = m_rready & sel_i2c;
+    assign s_yz_rready     = m_rready & sel_yz;
 
     // Slave -> Master cevap mux
     assign m_awready = sel_dram  ? s_dram_awready  :
@@ -298,56 +315,64 @@ module soc_top_axi (
                        sel_timer ? s_timer_awready :
                        sel_uart0 ? s_u0_awready    :
                        sel_uart1 ? s_u1_awready    :
-                       sel_i2c   ? s_i2c_awready   : 1'b0;
+                       sel_i2c   ? s_i2c_awready   :
+                       sel_yz    ? s_yz_awready    : 1'b0;
 
     assign m_wready  = sel_dram  ? s_dram_wready  :
                        sel_gpio  ? s_gpio_wready  :
                        sel_timer ? s_timer_wready :
                        sel_uart0 ? s_u0_wready    :
                        sel_uart1 ? s_u1_wready    :
-                       sel_i2c   ? s_i2c_wready   : 1'b0;
+                       sel_i2c   ? s_i2c_wready   :
+                       sel_yz    ? s_yz_wready    : 1'b0;
 
     assign m_bvalid  = sel_dram  ? s_dram_bvalid  :
                        sel_gpio  ? s_gpio_bvalid  :
                        sel_timer ? s_timer_bvalid :
                        sel_uart0 ? s_u0_bvalid    :
                        sel_uart1 ? s_u1_bvalid    :
-                       sel_i2c   ? s_i2c_bvalid   : 1'b0;
+                       sel_i2c   ? s_i2c_bvalid   :
+                       sel_yz    ? s_yz_bvalid    : 1'b0;
 
     assign m_bresp   = sel_dram  ? s_dram_bresp  :
                        sel_gpio  ? s_gpio_bresp  :
                        sel_timer ? s_timer_bresp :
                        sel_uart0 ? s_u0_bresp    :
                        sel_uart1 ? s_u1_bresp    :
-                       sel_i2c   ? s_i2c_bresp   : 2'b00;
+                       sel_i2c   ? s_i2c_bresp   :
+                       sel_yz    ? s_yz_bresp    : 2'b00;
 
     assign m_arready = sel_dram  ? s_dram_arready  :
                        sel_gpio  ? s_gpio_arready  :
                        sel_timer ? s_timer_arready :
                        sel_uart0 ? s_u0_arready    :
                        sel_uart1 ? s_u1_arready    :
-                       sel_i2c   ? s_i2c_arready   : 1'b0;
+                       sel_i2c   ? s_i2c_arready   :
+                       sel_yz    ? s_yz_arready    : 1'b0;
 
     assign m_rvalid  = sel_dram  ? s_dram_rvalid  :
                        sel_gpio  ? s_gpio_rvalid  :
                        sel_timer ? s_timer_rvalid :
                        sel_uart0 ? s_u0_rvalid    :
                        sel_uart1 ? s_u1_rvalid    :
-                       sel_i2c   ? s_i2c_rvalid   : 1'b0;
+                       sel_i2c   ? s_i2c_rvalid   :
+                       sel_yz    ? s_yz_rvalid    : 1'b0;
 
     assign m_rdata   = sel_dram  ? s_dram_rdata  :
                        sel_gpio  ? s_gpio_rdata  :
                        sel_timer ? s_timer_rdata :
                        sel_uart0 ? s_u0_rdata    :
                        sel_uart1 ? s_u1_rdata    :
-                       sel_i2c   ? s_i2c_rdata   : 32'h0;
+                       sel_i2c   ? s_i2c_rdata   :
+                       sel_yz    ? s_yz_rdata    : 32'h0;
 
     assign m_rresp   = sel_dram  ? s_dram_rresp  :
                        sel_gpio  ? s_gpio_rresp  :
                        sel_timer ? s_timer_rresp :
                        sel_uart0 ? s_u0_rresp    :
                        sel_uart1 ? s_u1_rresp    :
-                       sel_i2c   ? s_i2c_rresp   : 2'b00;
+                       sel_i2c   ? s_i2c_rresp   :
+                       sel_yz    ? s_yz_rresp    : 2'b00;
 
 
     // ========================================================================
@@ -515,6 +540,36 @@ module soc_top_axi (
         .sda_o         (i2c_sda_o),
         .sda_oe        (i2c_sda_oe),
         .sda_i         (i2c_sda_i)
+    );
+
+    // ----- YZ Hizlandirici (yz_top = yz_csr + yz_accel, 0x50xx_xxxx) -----
+    // Tam Tiny Conv: 49x40 -> 8 filtre 10x8 s2 SAME -> 25x20x8=4000 -> FC 4000->4
+    yz_top #(
+        .IN_H(49), .IN_W(40), .K_H(10), .K_W(8), .STRIDE(2), .N_FILT(8),
+        .OUT_H(25), .OUT_W(20), .FEAT(4000), .FC_OUT(4), .SHIFT(8), .PAD_H(4), .PAD_W(3)
+    ) u_yz (
+        .clk_i         (clk_i),
+        .rst_ni        (rst_ni),
+        .axi_awvalid_i (s_yz_awvalid),
+        .axi_awready_o (s_yz_awready),
+        .axi_awaddr_i  (m_awaddr),
+        .axi_awprot_i  (m_awprot),
+        .axi_wvalid_i  (s_yz_wvalid),
+        .axi_wready_o  (s_yz_wready),
+        .axi_wdata_i   (m_wdata),
+        .axi_wstrb_i   (m_wstrb),
+        .axi_bvalid_o  (s_yz_bvalid),
+        .axi_bready_i  (s_yz_bready),
+        .axi_bresp_o   (s_yz_bresp),
+        .axi_arvalid_i (s_yz_arvalid),
+        .axi_arready_o (s_yz_arready),
+        .axi_araddr_i  (m_araddr),
+        .axi_arprot_i  (m_arprot),
+        .axi_rvalid_o  (s_yz_rvalid),
+        .axi_rready_i  (s_yz_rready),
+        .axi_rdata_o   (s_yz_rdata),
+        .axi_rresp_o   (s_yz_rresp),
+        .irq_o         (yz_irq)
     );
 
 endmodule

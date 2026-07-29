@@ -1,0 +1,4 @@
+obj_*/
+*.dat
+main_*.cpp
+*.log
