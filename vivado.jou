@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed Jul 29 10:36:58 2026
+# Process ID         : 1178891
+# Current directory  : /home/ubuntu/zuga-final
+# Command line       : vivado -mode batch -source build_fpga.tcl
+# Log file           : /home/ubuntu/zuga-final/vivado.log
+# Journal file       : /home/ubuntu/zuga-final/vivado.jou
+# Running On         : ubuntu-Lenovo-V15-G4-IAH
+# Platform           : Ubuntu
+# Operating System   : Ubuntu 24.04.4 LTS
+# Processor Detail   : 12th Gen Intel(R) Core(TM) i5-12500H
+# CPU Frequency      : 400.163 MHz
+# CPU Physical cores : 12
+# CPU Logical cores  : 16
+# Host memory        : 16473 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 20768 MB
+# Available Virtual  : 10042 MB
+#-----------------------------------------------------------
+source build_fpga.tcl
