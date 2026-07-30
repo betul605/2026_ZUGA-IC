@@ -13,7 +13,7 @@ module fpga_top_axi (
     output logic       uart_tx,      // UART-0 : FPGA to host (USB UART)
     output logic       uart1_tx,     // UART-1 : YZ stream / debug (PMOD)
     output logic [7:0] led,          // 8 LED
-    input  logic [7:0] sw,           // 8 switch
+    input  logic [4:0] btn,          // 5 pushbutton (btnc/u/d/l/r) - Nexys Video'da slide switch yok
     inout  wire        i2c_scl,      // I2C SCL (acik drenaj)
     inout  wire        i2c_sda       // I2C SDA (acik drenaj)
 );
@@ -43,9 +43,9 @@ module fpga_top_axi (
         end
     end
 
-    // GPIO : switch girisleri, LED cikislari
+    // GPIO : pushbutton girisleri (5 bit), LED cikislari (8 bit)
     logic [15:0] gpio_in_full, gpio_out_full;
-    assign gpio_in_full = {8'h00, sw};
+    assign gpio_in_full = {11'h000, btn};
     assign led          = gpio_out_full[7:0];
 
     // I2C acik drenaj tristate (Vivado IOBUF cikarir)
