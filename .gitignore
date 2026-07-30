@@ -18,3 +18,17 @@ obj_dir*/
 
 # Build script tarafindan kopyalanan gecici hex (sw/ altindakiler takip edilir)
 /hello.hex
+
+# Vivado FPGA akisi - ara/junk dosyalar (deliverable'lar asagida -f ile eklenir)
+build_fpga/*.dcp
+build_fpga/.Xil/
+build_fpga/*.jou
+build_fpga/*.log
+build_fpga/*.pb
+build_fpga/*.rpx
+build_fpga/*.os
+build_fpga/bootloader.hex
+.Xil/
+vivado*.jou
+vivado*.log
+usage_statistics_webtalk.*
