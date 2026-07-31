@@ -151,7 +151,12 @@ module i2c_master_axi #(
 
     // ------------------------------------------------------------------------
     // AXI yazma + okuma + register update
+    // I2C tamamlanma darbesi: cfg_q[1]/cfg_q[3] SADECE bu blokta set edilir
+    // (FSM I_DONE'a girince) -> tek surucu (Vivado MDRV-1 onlenir).
     // ------------------------------------------------------------------------
+    logic i2c_done_pulse;
+    assign i2c_done_pulse = (i2c_state_q == I_DONE);
+
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
             nby_q       <= 3'd1;     // default 1 byte
@@ -161,7 +166,7 @@ module i2c_master_axi #(
             axi_state_q <= S_IDLE;
             read_data_q <= 32'h0;
         end else begin
-            // CFG[1] (TX_DONE) ve CFG[3] (RX_DONE) I2C state machine tarafindan yonetilir
+            // CFG[1] (TX_DONE) ve CFG[3] (RX_DONE) I2C FSM tamamlaninca set edilir
             // Yazilim 0 yazarak temizleyebilir
 
             case (axi_state_q)
@@ -204,6 +209,12 @@ module i2c_master_axi #(
                 end
                 default: axi_state_q <= S_IDLE;
             endcase
+
+            // I2C tamamlanma bayraklari (tek surucu: sadece bu blok)
+            if (i2c_done_pulse) begin
+                if (is_read_q) cfg_q[3] <= 1'b1;  // RX_DONE
+                else           cfg_q[1] <= 1'b1;  // TX_DONE
+            end
         end
     end
 
@@ -401,12 +412,10 @@ module i2c_master_axi #(
                 end
 
                 I_DONE: begin
-                    // CFG flag set
+                    // rdr_q burada yazilir (tek surucu); cfg_q bayraklari AXI
+                    // blogunda i2c_done_pulse ile set edilir (MDRV-1 onlenir)
                     if (is_read_q) begin
-                        rdr_q    <= rx_buf_q;
-                        cfg_q[3] <= 1'b1;  // RX_DONE
-                    end else begin
-                        cfg_q[1] <= 1'b1;  // TX_DONE
+                        rdr_q <= rx_buf_q;
                     end
                     i2c_state_q <= I_IDLE;
                 end

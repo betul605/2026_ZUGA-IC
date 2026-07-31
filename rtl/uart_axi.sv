@@ -147,6 +147,11 @@ module uart_axi (
     assign tx_start_pulse = write_strobe && (w_off == 3'h3) &&
                             cfg_q[0] && (tx_state_q == TX_IDLE);
 
+    // TX tamamlanma darbesi (TX_STOP son baud cevrimi). cfg_q[2] SADECE AXI
+    // blogunda bu darbeyle set edilir -> tek surucu (Vivado MDRV-1 onlenir).
+    logic tx_done_pulse;
+    assign tx_done_pulse = (tx_state_q == TX_STOP) && (tx_baud_cnt_q == cpb_q[15:0] - 1);
+
     // ------------------------------------------------------------------------
     // AXI yazma + okuma (yazmac dosyasi)
     // ------------------------------------------------------------------------
@@ -209,8 +214,10 @@ module uart_axi (
                 rdr_q    <= {24'h0, rx_shift_q};
                 cfg_q[1] <= 1'b1;  // RX_DONE flag
             end
-            // TX state machine CFG[2] (TX_DONE) set
-            // (asagidaki TX FSM bunu yonetir, write override edebilir)
+            // TX_DONE (cfg_q[2]) burada set edilir (tek surucu blok)
+            if (tx_done_pulse) begin
+                cfg_q[2] <= 1'b1;  // TX_DONE
+            end
         end
     end
 
@@ -272,7 +279,7 @@ module uart_axi (
                     if (tx_baud_cnt_q == cpb_q[15:0] - 1) begin
                         tx_baud_cnt_q <= 16'h0;
                         tx_state_q    <= TX_IDLE;
-                        cfg_q[2]      <= 1'b1;   // TX_DONE
+                        // cfg_q[2] (TX_DONE) AXI blogunda tx_done_pulse ile set edilir
                     end else begin
                         tx_baud_cnt_q <= tx_baud_cnt_q + 1;
                     end
