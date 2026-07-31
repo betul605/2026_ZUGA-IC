@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
-| Date         : Thu Jul 30 22:49:30 2026
+| Date         : Sat Aug  1 00:41:04 2026
 | Host         : ubuntu-Lenovo-V15-G4-IAH running 64-bit Ubuntu 24.04.4 LTS
 | Command      : report_utilization -file build_fpga/utilization_synth.rpt
 | Design       : fpga_top_axi
@@ -28,19 +28,21 @@ Table of Contents
 1. Slice Logic
 --------------
 
-+-------------------------+------+-------+------------+-----------+-------+
-|        Site Type        | Used | Fixed | Prohibited | Available | Util% |
-+-------------------------+------+-------+------------+-----------+-------+
-| Slice LUTs*             |   93 |     0 |          0 |    134600 |  0.07 |
-|   LUT as Logic          |   93 |     0 |          0 |    134600 |  0.07 |
-|   LUT as Memory         |    0 |     0 |          0 |     46200 |  0.00 |
-| Slice Registers         |   97 |     0 |          0 |    269200 |  0.04 |
-|   Register as Flip Flop |   97 |     0 |          0 |    269200 |  0.04 |
-|   Register as Latch     |    0 |     0 |          0 |    269200 |  0.00 |
-| F7 Muxes                |    0 |     0 |          0 |     67300 |  0.00 |
-| F8 Muxes                |    0 |     0 |          0 |     33650 |  0.00 |
-| Unique Control Sets     |    8 |       |          0 |     33650 |  0.02 |
-+-------------------------+------+-------+------------+-----------+-------+
++----------------------------+--------+-------+------------+-----------+-------+
+|          Site Type         |  Used  | Fixed | Prohibited | Available | Util% |
++----------------------------+--------+-------+------------+-----------+-------+
+| Slice LUTs*                |  48959 |     0 |          0 |    134600 | 36.37 |
+|   LUT as Logic             |  45419 |     0 |          0 |    134600 | 33.74 |
+|   LUT as Memory            |   3540 |     0 |          0 |     46200 |  7.66 |
+|     LUT as Distributed RAM |   3540 |     0 |            |           |       |
+|     LUT as Shift Register  |      0 |     0 |            |           |       |
+| Slice Registers            | 102414 |     0 |          0 |    269200 | 38.04 |
+|   Register as Flip Flop    | 102413 |     0 |          0 |    269200 | 38.04 |
+|   Register as Latch        |      1 |     0 |          0 |    269200 | <0.01 |
+| F7 Muxes                   |  13595 |     0 |          0 |     67300 | 20.20 |
+| F8 Muxes                   |   6584 |     0 |          0 |     33650 | 19.57 |
+| Unique Control Sets        |  12620 |       |          0 |     33650 | 37.50 |
++----------------------------+--------+-------+------------+-----------+-------+
 * Warning! The Final LUT count, after physical optimizations and full implementation, is typically lower. Run opt_design after synthesis, if not already completed, for a more realistic count.
 Warning! LUT value is adjusted to account for LUT combining.
 Warning! For any ECO changes, please run place_design if there are unplaced instances
@@ -59,10 +61,10 @@ Warning! For any ECO changes, please run place_design if there are unplaced inst
 | 0     |            _ |         Set |            - |
 | 0     |            _ |       Reset |            - |
 | 0     |          Yes |           - |            - |
-| 5     |          Yes |           - |          Set |
-| 89    |          Yes |           - |        Reset |
+| 60    |          Yes |           - |          Set |
+| 4655  |          Yes |           - |        Reset |
 | 0     |          Yes |         Set |            - |
-| 3     |          Yes |       Reset |            - |
+| 97699 |          Yes |       Reset |            - |
 +-------+--------------+-------------+--------------+
 
 
@@ -82,11 +84,12 @@ Warning! For any ECO changes, please run place_design if there are unplaced inst
 3. DSP
 ------
 
-+-----------+------+-------+------------+-----------+-------+
-| Site Type | Used | Fixed | Prohibited | Available | Util% |
-+-----------+------+-------+------------+-----------+-------+
-| DSPs      |    0 |     0 |          0 |       740 |  0.00 |
-+-----------+------+-------+------------+-----------+-------+
++----------------+------+-------+------------+-----------+-------+
+|    Site Type   | Used | Fixed | Prohibited | Available | Util% |
++----------------+------+-------+------------+-----------+-------+
+| DSPs           |    9 |     0 |          0 |       740 |  1.22 |
+|   DSP48E1 only |    9 |       |            |           |       |
++----------------+------+-------+------------+-----------+-------+
 
 
 4. IO and GT Specific
@@ -95,9 +98,9 @@ Warning! For any ECO changes, please run place_design if there are unplaced inst
 +-----------------------------+------+-------+------------+-----------+-------+
 |          Site Type          | Used | Fixed | Prohibited | Available | Util% |
 +-----------------------------+------+-------+------------+-----------+-------+
-| Bonded IOB                  |   14 |    14 |          0 |       285 |  4.91 |
-|   IOB Master Pads           |    8 |       |            |           |       |
-|   IOB Slave Pads            |    6 |       |            |           |       |
+| Bonded IOB                  |   19 |    19 |          0 |       285 |  6.67 |
+|   IOB Master Pads           |   10 |       |            |           |       |
+|   IOB Slave Pads            |    8 |       |            |           |       |
 | Bonded IPADs                |    0 |     0 |          0 |        14 |  0.00 |
 | Bonded OPADs                |    0 |     0 |          0 |         8 |  0.00 |
 | PHY_CONTROL                 |    0 |     0 |          0 |        10 |  0.00 |
@@ -122,7 +125,7 @@ Warning! For any ECO changes, please run place_design if there are unplaced inst
 +------------+------+-------+------------+-----------+-------+
 |  Site Type | Used | Fixed | Prohibited | Available | Util% |
 +------------+------+-------+------------+-----------+-------+
-| BUFGCTRL   |    2 |     0 |          0 |        32 |  6.25 |
+| BUFGCTRL   |    3 |     0 |          0 |        32 |  9.38 |
 | BUFIO      |    0 |     0 |          0 |        40 |  0.00 |
 | MMCME2_ADV |    0 |     0 |          0 |        10 |  0.00 |
 | PLLE2_ADV  |    0 |     0 |          0 |        10 |  0.00 |
@@ -153,24 +156,31 @@ Warning! For any ECO changes, please run place_design if there are unplaced inst
 7. Primitives
 -------------
 
-+----------+------+---------------------+
-| Ref Name | Used | Functional Category |
-+----------+------+---------------------+
-| FDCE     |   89 |        Flop & Latch |
-| LUT4     |   48 |                 LUT |
-| LUT6     |   43 |                 LUT |
-| CARRY4   |   30 |          CarryLogic |
-| LUT5     |   11 |                 LUT |
-| OBUF     |   10 |                  IO |
-| LUT3     |    7 |                 LUT |
-| LUT2     |    5 |                 LUT |
-| FDPE     |    5 |        Flop & Latch |
-| LUT1     |    4 |                 LUT |
-| FDRE     |    3 |        Flop & Latch |
-| OBUFT    |    2 |                  IO |
-| IBUF     |    2 |                  IO |
-| BUFG     |    2 |               Clock |
-+----------+------+---------------------+
++----------+-------+---------------------+
+| Ref Name |  Used | Functional Category |
++----------+-------+---------------------+
+| FDRE     | 97699 |        Flop & Latch |
+| LUT6     | 35008 |                 LUT |
+| MUXF7    | 13595 |               MuxFx |
+| MUXF8    |  6584 |               MuxFx |
+| FDCE     |  4654 |        Flop & Latch |
+| LUT5     |  4473 |                 LUT |
+| LUT2     |  4384 |                 LUT |
+| LUT3     |  4337 |                 LUT |
+| RAMD64E  |  3492 |  Distributed Memory |
+| LUT4     |  1288 |                 LUT |
+| CARRY4   |   311 |          CarryLogic |
+| LUT1     |    82 |                 LUT |
+| RAMD32   |    68 |  Distributed Memory |
+| FDPE     |    60 |        Flop & Latch |
+| RAMS32   |    20 |  Distributed Memory |
+| OBUF     |    10 |                  IO |
+| DSP48E1  |     9 |    Block Arithmetic |
+| IBUF     |     8 |                  IO |
+| BUFG     |     3 |               Clock |
+| OBUFT    |     2 |                  IO |
+| LDCE     |     1 |        Flop & Latch |
++----------+-------+---------------------+
 
 
 8. Black Boxes
