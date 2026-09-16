@@ -18,7 +18,7 @@ set OUTDIR build_fpga
 file mkdir $OUTDIR
 
 # $readmemh("bootloader.hex") sentezde bulunabilsin diye cwd'ye kopyala
-if {[file exists sw/bootloader.hex]} { file copy -force sw/bootloader.hex bootloader.hex }
+if {[file exists sw/boot_stub.hex]} { file copy -force sw/boot_stub.hex bootloader.hex }
 
 # -------- RTL kaynaklari --------
 # CV32E40P cekirdegi (paketler once)

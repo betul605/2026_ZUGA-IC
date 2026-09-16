@@ -10,6 +10,6 @@ $OCP -O binary demo.elf demo.bin
 echo "== boot stub derle =="
 $GCC -march=rv32imc -mabi=ilp32 -nostdlib -Wl,-Ttext=0x00000000 -Wl,--no-relax boot_stub.S -o boot_stub.elf
 $OCP -O binary boot_stub.elf boot_stub.bin
-python3 bin2hex.py boot_stub.bin bootloader.hex 128
+python3 bin2hex.py boot_stub.bin bootloader.hex 128; cp bootloader.hex sw/boot_stub.hex
 python3 bin2hex.py demo.bin demo_prog.hex 2048
 echo "== TAMAM =="
