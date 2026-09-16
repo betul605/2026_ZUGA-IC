@@ -26,6 +26,7 @@ module soc_top_axi (
     output logic [15:0] gpio_out_o,
     output logic        uart0_tx_o,
     output logic        uart1_tx_o,
+    input  logic        uart1_rx_i,
     output logic        i2c_scl_o,
     output logic        i2c_scl_oe,
     output logic        i2c_sda_o,
@@ -167,6 +168,7 @@ module soc_top_axi (
 
     initial begin
         $readmemh("bootloader.hex", instr_mem, 0, 127);
+        $readmemh("demo_prog.hex",  instr_mem, 128, 2175);
         // IRAM 128'den itibaren bos baslar (program runtime'da yuklenir)
     end
 
@@ -509,7 +511,8 @@ module soc_top_axi (
         .axi_rready_i  (s_u1_rready),
         .axi_rdata_o   (s_u1_rdata),
         .axi_rresp_o   (s_u1_rresp),
-        .tx_o          (uart1_tx_o)
+        .tx_o          (uart1_tx_o),
+        .rx_i          (uart1_rx_i)
     );
 
     // ----- I2C Master (M22, 5 yazmac, 400 kHz) -----

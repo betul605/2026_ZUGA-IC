@@ -11,7 +11,8 @@ module fpga_top_axi (
     input  logic       sysclk,       // 100 MHz osilator
     input  logic       cpu_resetn,   // reset butonu (aktif dusuk)
     output logic       uart_tx,      // UART-0 : FPGA to host (USB UART)
-    output logic       uart1_tx,     // UART-1 : YZ stream / debug (PMOD)
+    output logic       uart1_tx,
+    input  logic       uart1_rx,     // UART-1 : YZ stream / debug (PMOD)
     output logic [7:0] led,          // 8 LED
     input  logic [4:0] btn,          // 5 pushbutton (btnc/u/d/l/r) - Nexys Video'da slide switch yok
     inout  wire        i2c_scl,      // I2C SCL (acik drenaj)
@@ -62,6 +63,7 @@ module fpga_top_axi (
         .gpio_out_o (gpio_out_full),
         .uart0_tx_o (uart_tx),
         .uart1_tx_o (uart1_tx),
+        .uart1_rx_i (uart1_rx),
         .i2c_scl_o  (i2c_scl_o_int),
         .i2c_scl_oe (i2c_scl_oe_int),
         .i2c_sda_o  (i2c_sda_o_int),

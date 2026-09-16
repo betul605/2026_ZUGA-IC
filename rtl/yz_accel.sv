@@ -92,6 +92,14 @@ module yz_accel #(
     end
 `endif
 
+`ifdef YZ_FPGA_WEIGHTS
+    initial begin
+        $readmemh("yz_wconv.hex", wconv);
+        $readmemh("yz_bconv.hex", bconv);
+        $readmemh("yz_wfc.hex",   wfc);
+        $readmemh("yz_bfc.hex",   bfc);
+    end
+`endif
     // Senkron yazma portu (SoC yolu)
     always_ff @(posedge clk_i) begin
         if (mem_we_i) begin
@@ -202,7 +210,7 @@ module yz_accel #(
                         end
                     end
                     S_CONV_STORE: begin
-                        actm[act_idx[ACT_AW-1:0]] <= requant(acc);
+                        // actm yazimi: ayri senkron blok (FPGA RAM cikarimi), asagida
                         // sonraki cikis pozisyonu
                         if (ox < OUT_W-1) begin
                             ox <= ox + 1; st <= S_CONV_LOAD;
@@ -233,7 +241,7 @@ module yz_accel #(
                         else             st <= S_FC_STORE;
                     end
                     S_FC_STORE: begin
-                        logitm[f[BF_AW-1:0]] <= acc;
+                        // logitm yazimi: ayri senkron blok (FPGA RAM cikarimi), asagida
                         if (f < FC_OUT-1) begin
                             f <= f + 1; st <= S_FC_LOAD;
                         end else begin
@@ -265,5 +273,17 @@ module yz_accel #(
     end
 
     assign irq_o = done_pulse;
+
+    // ------------------------------------------------------------------------
+    // actm / logitm: reset'siz senkron yazma portu.
+    // Async-reset FSM blogundan cikarildi: Vivado bunlari (wconv/wfc gibi)
+    // Distributed RAM olarak ciksin. Aksi halde 32000 FF'e dagitip
+    // "simulation mismatch" uyarisi veriyordu (FPGA'da yanlis sonuc nedeni).
+    // Yazma kosulu ve cevrimi FSM'deki orijinal ile birebir aynidir.
+    // ------------------------------------------------------------------------
+    always_ff @(posedge clk_i) begin
+        if (!sw_reset_i && st == S_CONV_STORE) actm[act_idx[ACT_AW-1:0]] <= requant(acc);
+        if (!sw_reset_i && st == S_FC_STORE)   logitm[f[BF_AW-1:0]]      <= acc;
+    end
 
 endmodule

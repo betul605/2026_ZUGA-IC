@@ -20,6 +20,7 @@ set_property -dict { PACKAGE_PIN AA19 IOSTANDARD LVCMOS33 } [get_ports uart_tx]
 
 ## UART-1 -> PMOD JC pin 1 (jc[0], bank 34 LVCMOS33)
 set_property -dict { PACKAGE_PIN Y6  IOSTANDARD LVCMOS33 } [get_ports uart1_tx]
+set_property -dict { PACKAGE_PIN AB8 IOSTANDARD LVCMOS33 } [get_ports uart1_rx]
 
 ## 8 LED  (LVCMOS25 - LED bankasi)
 set_property -dict { PACKAGE_PIN T14 IOSTANDARD LVCMOS25 } [get_ports {led[0]}]

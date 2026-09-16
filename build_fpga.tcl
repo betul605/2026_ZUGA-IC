@@ -54,6 +54,7 @@ set CORE {
 }
 # ZUGA-IC bloklari + YZ + SoC + FPGA top
 set ZUGA {
+    tb/sky130_sram_1kbyte_1rw1r_32x256_8_sim.v
     rtl/obi_to_axi_lite.sv
     rtl/ram_axi.sv
     rtl/gpio_axi.sv
