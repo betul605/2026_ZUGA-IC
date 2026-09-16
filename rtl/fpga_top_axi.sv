@@ -19,20 +19,20 @@ module fpga_top_axi (
     inout  wire        i2c_sda       // I2C SDA (acik drenaj)
 );
     // Saat bolucu : 100 MHz ikiye bolunur, 50 MHz cekirdek saati
-    logic clk_50 = 1'b0;
-    always_ff @(posedge sysclk) begin
-        clk_50 <= ~clk_50;
-    end
+    logic [1:0] clk_div = 2'b00;          // sysclk/4 = 25 MHz
+    always_ff @(posedge sysclk) clk_div <= clk_div + 2'd1;
+    logic clk_25;
+    BUFG u_bufg_clk25 (.I(clk_div[1]), .O(clk_25));
 
     // Reset debounce : cpu_resetn senkronize edilir, 16 bit bekleme
     logic rst_n_meta, rst_n_sync;
     logic [15:0] rst_cnt;
     logic rst_n_clean;
-    always_ff @(posedge clk_50) begin
+    always_ff @(posedge clk_25) begin
         rst_n_meta <= cpu_resetn;
         rst_n_sync <= rst_n_meta;
     end
-    always_ff @(posedge clk_50 or negedge rst_n_sync) begin
+    always_ff @(posedge clk_25 or negedge rst_n_sync) begin
         if (!rst_n_sync) begin
             rst_cnt     <= 16'h0;
             rst_n_clean <= 1'b0;
@@ -57,7 +57,7 @@ module fpga_top_axi (
 
     // SoC (YZ dahil)
     soc_top_axi u_soc (
-        .clk_i      (clk_50),
+        .clk_i      (clk_25),
         .rst_ni     (rst_n_clean),
         .gpio_in_i  (gpio_in_full),
         .gpio_out_o (gpio_out_full),

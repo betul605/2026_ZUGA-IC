@@ -10,7 +10,8 @@
 ## 100 MHz sistem saati (bank 14, LVCMOS33)
 set_property -dict { PACKAGE_PIN R4  IOSTANDARD LVCMOS33 } [get_ports sysclk]
 create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} [get_ports sysclk]
-# Tasarim 50 MHz'de calisir (sysclk/2); generated clock otomatik cikarilir.
+# Tasarim 25 MHz'de calisir (sysclk/4, flop bolucu -> kisit elle verilir)
+create_generated_clock -name clk_25 -source [get_ports sysclk] -divide_by 4 [get_pins {clk_div_reg[1]/Q}]
 
 ## CPU Reset (kirmizi buton, aktif-dusuk) - LVCMOS15
 set_property -dict { PACKAGE_PIN G4  IOSTANDARD LVCMOS15 } [get_ports cpu_resetn]

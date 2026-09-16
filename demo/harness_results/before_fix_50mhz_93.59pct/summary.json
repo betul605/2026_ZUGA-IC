@@ -1,0 +1,71 @@
+{
+  "harness_version": "1.0.2",
+  "primary_metric": "golden_agreement_pct",
+  "team": "ZUGA-IC",
+  "team_id": "989786",
+  "timestamp": "2026-09-16T19:25:57+03:00",
+  "config_file": "takim_icd.json",
+  "config_sha256": "9f0df69d99a0985de4290e6bcd2d8a658cda68dd64c4b1e03943899b77cc18a1",
+  "total_samples": 156,
+  "answered": 156,
+  "timeouts": 0,
+  "with_golden_ref": 156,
+  "golden_agreement_pct": 93.58974358974359,
+  "golden_agreement_strict_pct": 93.58974358974359,
+  "mismatch_count": 10,
+  "ref_timeout_count": 0,
+  "accuracy_info_hw_pct": 67.3076923076923,
+  "accuracy_info_sw_pct": 72.43589743589743,
+  "score_comparison_samples": 0,
+  "score_error_mean_pct": null,
+  "score_error_max_pct": null,
+  "latency_ms": {
+    "n": 156,
+    "min": 48.50189400895033,
+    "median": 56.10392399830744,
+    "p95": 62.056868762738304,
+    "max": 66.20247100363486
+  },
+  "tx_ms_median": 167.98287400160916,
+  "speedup_ratio": null,
+  "software_reference_ms": null,
+  "robustness_passed": 0,
+  "robustness_total": 0,
+  "robustness_skipped": 0,
+  "confusion_matrix": {
+    "silence": {
+      "silence": 6,
+      "unknown": 0,
+      "yes": 0,
+      "no": 0,
+      "TIMEOUT": 0
+    },
+    "unknown": {
+      "silence": 0,
+      "unknown": 13,
+      "yes": 0,
+      "no": 3,
+      "TIMEOUT": 0
+    },
+    "yes": {
+      "silence": 0,
+      "unknown": 0,
+      "yes": 49,
+      "no": 1,
+      "TIMEOUT": 0
+    },
+    "no": {
+      "silence": 0,
+      "unknown": 5,
+      "yes": 1,
+      "no": 78,
+      "TIMEOUT": 0
+    }
+  },
+  "meta": {
+    "seed": 1337,
+    "dataset": "public_dataset/manifest.csv",
+    "dataset_size": 156,
+    "dry_run": false
+  }
+}

@@ -31,7 +31,7 @@ static uint32_t g4(void){uint32_t a=g1();a|=(uint32_t)g1()<<8;a|=(uint32_t)g1()<
 static void waitpre(void){for(;;){if(g1()!=0xAA)continue;if(g1()==0x55)return;}}
 int main(void){
   for(int k=0;k<4;k++){led(0xFFu);dly(4000000u);led(0x00u);dly(4000000u);}
-  wr(U1+CPB,434); wr(U1+CFG,0x1u);
+  wr(U1+CPB,217); wr(U1+CFG,0x1u);
   t1('R');t1('D');t1('Y');t1('\n');
   led(0x01u);                                     /* agirlik yukleniyor */
   for(int i=0;i<N_WCONV;i++) wr(YZ_WC+i*4,(uint32_t)g1());
@@ -43,7 +43,7 @@ int main(void){
   for(;;){
     waitpre();
     led(0x40u);
-    for(int i=0;i<IN_COUNT;i++) wr(YZ_IN+i*4,(uint32_t)g1());
+    for(int i=0;i<IN_COUNT;i++) wr(YZ_IN+i*4,(uint32_t)((g1()^0x80u)>>1));
     wr(YZ_CTRL,0x1u);
     uint32_t wd=20000000u; int to=0;
     while(!(rd(YZ_STATUS)&0x2u)){if(--wd==0){to=1;break;}}

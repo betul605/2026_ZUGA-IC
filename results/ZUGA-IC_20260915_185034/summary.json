@@ -1,0 +1,71 @@
+{
+  "harness_version": "1.0.1",
+  "primary_metric": "golden_agreement_pct",
+  "team": "ZUGA-IC",
+  "team_id": "989786",
+  "timestamp": "2026-09-15T18:51:22+03:00",
+  "config_file": "team_icd.json",
+  "config_sha256": "fd2f9f81f3811a4d67d862c403504a65d3cff539e09845aefb2e2da780489f0b",
+  "total_samples": 4,
+  "answered": 0,
+  "timeouts": 4,
+  "with_golden_ref": 4,
+  "golden_agreement_pct": null,
+  "golden_agreement_strict_pct": 0.0,
+  "mismatch_count": 0,
+  "ref_timeout_count": 4,
+  "accuracy_info_hw_pct": null,
+  "accuracy_info_sw_pct": 100.0,
+  "score_comparison_samples": 0,
+  "score_error_mean_pct": null,
+  "score_error_max_pct": null,
+  "latency_ms": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "p95": null,
+    "max": null
+  },
+  "tx_ms_median": 167.43209950072924,
+  "speedup_ratio": null,
+  "software_reference_ms": null,
+  "robustness_passed": 0,
+  "robustness_total": 0,
+  "robustness_skipped": 0,
+  "confusion_matrix": {
+    "silence": {
+      "silence": 0,
+      "unknown": 0,
+      "yes": 0,
+      "no": 0,
+      "TIMEOUT": 0
+    },
+    "unknown": {
+      "silence": 0,
+      "unknown": 0,
+      "yes": 0,
+      "no": 0,
+      "TIMEOUT": 0
+    },
+    "yes": {
+      "silence": 0,
+      "unknown": 0,
+      "yes": 0,
+      "no": 0,
+      "TIMEOUT": 4
+    },
+    "no": {
+      "silence": 0,
+      "unknown": 0,
+      "yes": 0,
+      "no": 0,
+      "TIMEOUT": 0
+    }
+  },
+  "meta": {
+    "seed": 1337,
+    "dataset": "demo_vectors/manifest.csv",
+    "dataset_size": 4,
+    "dry_run": false
+  }
+}
