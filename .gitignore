@@ -41,3 +41,10 @@ sim_cv32
 asic/runs/
 asic/run/
 *.gds
+vivado*.jou
+vivado*.log
+vivado_pid*.str
+*.backup.*
+clockInfo.txt
+prog.log
+.Xil/
