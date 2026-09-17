@@ -53,3 +53,12 @@ Hiçbir şey çalışmıyor:    cat demo/harness_results/full_20260918_99.36pct/
 # NOT
 Harness paketi (demo_program) DDK'ye aittir, bu repoda yoktur.
 Demo için ~/fpga_demo/demo_program altında bulunmalıdır.
+
+## EK — Simülasyon kanıtı (jüri isterse)
+cd ~/Desktop/ZUGA-IC-final
+iverilog -g2012 -I sw/yz -o /tmp/yz.vvp rtl/yz_csr.sv rtl/yz_accel.sv rtl/yz_top.sv tb/yz_top_tb.sv && vvp /tmp/yz.vvp | tail -8
+-> [TB] PASS logit0..3 ve "YZ SOC ENTEGRASYON TESTI PASSED" (CPU AXI yolu, HW==golden)
+
+## EK — Yedek rapor (hiçbir şey çalışmazsa)
+cat ~/Desktop/ZUGA-IC-final/demo/harness_results/full_20260918_99.36pct/report.md
+-> 18 Eylül kaydı: %99.36, mismatches 1, timeouts 0, robustness 10/10
