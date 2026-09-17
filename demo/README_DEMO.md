@@ -2,14 +2,14 @@
 
 ## Bağlantı
 - PL2303 USB-TTL (3.3 V): yeşil TX -> JC pin4 (AB8, uart1_rx), beyaz RX -> JC pin1 (Y6, uart1_tx), siyah GND -> JC pin5. Kırmızı VCC BAĞLANMAZ.
-- Linux'ta TTL = /dev/ttyUSB2 (JTAG FT2232 = ttyUSB0/1).
+- Linux'ta TTL = /dev/ttyUSB0 (JTAG FT2232 = ttyUSB0/1).
 
 ## Adımlar
 1. Programla: `vivado -mode batch -source prog_only.tcl` (bit: build_fpga/zuga_ic.bit, kopyası demo/zuga_ic_25mhz.bit)
    - "No devices detected" -> `sudo pkill -f hw_server; sudo modprobe -r ftdi_sio` ve/veya PROG USB'yi çıkar-tak.
-2. 4x LED blink sonrası LD0 yanar (ağırlık bekliyor): `python3 demo/load_weights.py /dev/ttyUSB2` -> `WOK`, LD7 yanar.
+2. 4x LED blink sonrası LD0 yanar (ağırlık bekliyor): `python3 demo/load_weights.py /dev/ttyUSB0` -> `WOK`, LD7 yanar.
 3. Harness (demo_program klasöründe):
-   `python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest.csv --core-port /dev/ttyUSB2 --stream-port /dev/ttyUSB2 --core-baud 115200 --stream-baud 115200`
+   `python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest.csv --core-port /dev/ttyUSB0 --stream-port /dev/ttyUSB0 --core-baud 115200 --stream-baud 115200`
    Not: Her programlama / güç kesintisinden sonra 2. adım tekrar gerekir.
 
 ## Sonuçlar

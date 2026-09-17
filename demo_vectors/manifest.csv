@@ -1,5 +1,5 @@
-file,truth,golden
-vec_yes.bin,yes,yes
-vec_yes.bin,yes,yes
-vec_yes.bin,yes,yes
-vec_yes.bin,yes,yes
+file,name,truth,golden,golden_scores,golden_probs
+vectors/yes_953fe1ad_nohash_1.bin,yes_953fe1ad_nohash_1,yes,yes,-128;-128;127;-128,0.0000;0.0000;0.9961;0.0000
+vectors/go_f2e59fea_nohash_3.bin,go_f2e59fea_nohash_3,unknown,unknown,-128;103;-126;-105,0.0000;0.9023;0.0078;0.0898
+vectors/yes_0717b9f6_nohash_0.bin,yes_0717b9f6_nohash_0,yes,yes,-128;-124;122;-126,0.0000;0.0156;0.9766;0.0078
+vectors/yes_51f7a034_nohash_3.bin,yes_51f7a034_nohash_3,yes,yes,-128;-128;127;-128,0.0000;0.0000;0.9961;0.0000

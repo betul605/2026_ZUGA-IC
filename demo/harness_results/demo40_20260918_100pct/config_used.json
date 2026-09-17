@@ -1,0 +1,106 @@
+{
+  "team": {
+    "name": "ZUGA-IC",
+    "id": "989786",
+    "notes": "Nexys Video XC7A200T, 50 MHz. Stream=UART-1 (PMOD JC pin4 AB8), Core=UART-0 onboard USB. Frame AA55 + 1960 int8, no checksum."
+  },
+  "stream": {
+    "port": {
+      "port": "/dev/ttyUSB0",
+      "baudrate": 115200,
+      "bytesize": 8,
+      "parity": "N",
+      "stopbits": 1,
+      "rtscts": false,
+      "dsrdtr": false,
+      "xonxoff": false,
+      "write_timeout_s": 5.0,
+      "read_timeout_s": 0.05,
+      "dtr": null,
+      "rts": null,
+      "open_settle_ms": 200,
+      "flush_input_on_open": true
+    },
+    "framing": {
+      "preamble_hex": "AA55",
+      "index_field_size": 0,
+      "length_field_size": 0,
+      "length_counts": "payload",
+      "endian": "little",
+      "checksum": "none",
+      "checksum_covers": "payload",
+      "trailer_hex": "",
+      "chunk_size": 32,
+      "inter_chunk_delay_ms": 1,
+      "inter_frame_delay_ms": 30,
+      "drain_after_write": true
+    },
+    "payload": {
+      "length": 1960,
+      "encoding": "int8",
+      "pad_value": 0
+    }
+  },
+  "core": {
+    "port": {
+      "port": "/dev/ttyUSB0",
+      "baudrate": 115200,
+      "bytesize": 8,
+      "parity": "N",
+      "stopbits": 1,
+      "rtscts": false,
+      "dsrdtr": false,
+      "xonxoff": false,
+      "read_timeout_s": 0.05,
+      "write_timeout_s": 5.0,
+      "dtr": null,
+      "rts": null,
+      "open_settle_ms": 200,
+      "flush_input_on_open": true
+    },
+    "result": {
+      "mode": "regex_line",
+      "line_terminator": "\n",
+      "encoding": "ascii",
+      "regex": "RESULT\\s*[:=]\\s*(?P<label>[A-Za-z_0-9]+)(?:.*?scores\\s*[:=]\\s*(?P<scores>[-+0-9.,;\\s]+))?",
+      "json_label_key": "label",
+      "json_scores_key": "scores",
+      "csv_label_index": 0,
+      "csv_scores_start": 1,
+      "binary_preamble_hex": "",
+      "binary_label_size": 1,
+      "binary_score_count": 0,
+      "binary_score_size": 1,
+      "binary_score_signed": true,
+      "binary_endian": "little",
+      "label_map": {},
+      "classes": [
+        "silence",
+        "unknown",
+        "yes",
+        "no"
+      ],
+      "timeout_ms": 5000,
+      "ignore_regex": "^(READY|INFO|DBG|BOOT|ERR)"
+    }
+  },
+  "hooks": {
+    "boot_banner_regex": "",
+    "boot_timeout_ms": 10000,
+    "boot_trigger_core_hex": "",
+    "core_init_hex": "",
+    "stream_init_hex": "",
+    "pre_frame_core_hex": "",
+    "interleave_core_hex": "",
+    "interleave_expect_regex": "",
+    "reset_hex": ""
+  },
+  "run": {
+    "warmup_frames": 1,
+    "retries_per_sample": 1,
+    "inter_sample_delay_ms": 0,
+    "stop_on_consecutive_timeouts": 10,
+    "software_reference_ms": null,
+    "speedup_threshold": 10.0
+  }
+}
