@@ -91,3 +91,16 @@ LD6      = cikarim suruyor
 kisa tek LED = sonuc (LD0 silence, LD1 unknown, LD2 yes, LD3 no)
 0xAA     = hizlandirici timeout
 ============================================================
+
+============================================================
+ONEMLI KURALLAR
+============================================================
+1) LED'ler yaniyorsa ADIM 1'i (vivado) CALISTIRMA.
+   Kart zaten programli, gereksiz hata alirsin.
+
+2) LD7 (en sol) yanıksa ADIM 4'u (load_weights) ATLA.
+   Agirliklar zaten yuklu, dogrudan ADIM 5'e (test) gec.
+   load_weights sadece LD0 yanikken calistirilir.
+
+3) load_weights bos cevap verdiyse (kart: b'') panige gerek yok,
+   LD7'ye bak. Yanıksa test calisir.
