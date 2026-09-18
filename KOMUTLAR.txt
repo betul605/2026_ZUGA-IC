@@ -1,0 +1,32 @@
+=== ADIM 1 ===
+cd ~/Desktop/ZUGA-IC-final
+vivado -mode batch -source prog_only.tcl 2>&1 | grep -E "PROGRAMLANDI|ERROR"
+
+=== ADIM 2 ===
+Kartta kirmizi CPU_RESETN butonuna bas
+8 LED 4 kez yanip soner, LD0 (en sag) yanik kalir
+
+=== ADIM 3 ===
+cd ~/Desktop/ZUGA-IC-final
+python3 demo/load_weights.py /dev/ttyUSB0
+
+=== ADIM 4 ===
+cd ~/fpga_demo/demo_program
+python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest_demo40.csv --core-port /dev/ttyUSB0 --stream-port /dev/ttyUSB0 --core-baud 115200 --stream-baud 115200 --no-robustness
+
+=== ADIM 5 (tam set, istenirse) ===
+cd ~/fpga_demo/demo_program
+python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest.csv --core-port /dev/ttyUSB0 --stream-port /dev/ttyUSB0 --core-baud 115200 --stream-baud 115200
+
+=== HATA: No devices detected ===
+sudo pkill -f hw_server; sudo pkill -f cs_server; sleep 1; sudo modprobe -r ftdi_sio; sleep 1
+cd ~/Desktop/ZUGA-IC-final && vivado -mode batch -source prog_only.tcl 2>&1 | grep -E "PROGRAMLANDI|ERROR"
+
+=== HATA: Permission denied ===
+sudo chmod 666 /dev/ttyUSB0
+
+=== HATA: port yok ===
+ls /dev/ttyUSB*
+
+=== YEDEK RAPOR ===
+cat ~/Desktop/ZUGA-IC-final/demo/harness_results/full_20260918_99.36pct/report.md
