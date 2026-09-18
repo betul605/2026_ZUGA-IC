@@ -1,18 +1,14 @@
 ============================================================
-ZUGA-IC DEMO
+ZUGA-IC DEMO      PORT: /dev/ttyUSB2
 Kablo: yesil=JC pin4  beyaz=JC pin1  siyah=JC pin5  kirmizi=BAGLANMAZ
 ============================================================
 
---- ADIM 0 : PORTU BUL (HER ZAMAN ILK BU) ---
+--- ADIM 0 : KONTROL ---
 ls -l /dev/serial/by-id/
 
-Prolific satirindaki ttyUSBn numarasini not et.
-Prolific YOKSA: TTL kabloyu USB'ye tak, komutu tekrarla.
-Digilent satirlari karta aittir, ONLARI KULLANMA.
-
-Bulunan numarayi degiskene yaz (ornek: ttyUSB2):
-P=/dev/ttyUSB2
-echo $P
+Prolific satiri -> ttyUSB2 olmali.
+Baska numara yaziyorsa asagidaki komutlarda ttyUSB2 yerine onu kullan.
+Prolific hic yoksa TTL kabloyu cikar-tak.
 
 
 --- ADIM 1 : BITSTREAM (LED'ler sonukse; yaniyorsa ATLA) ---
@@ -24,7 +20,7 @@ KART : 8 LED 4 kez blink, LD0 (en sag) yanik kalir
 
 
 --- ADIM 2 : TAMPON TEMIZLE ---
-python3 -c "import serial,time,sys; s=serial.Serial(sys.argv[1],115200,timeout=1); time.sleep(0.3); s.reset_input_buffer(); s.read(200000); print('temiz')" $P
+python3 -c "import serial,time; s=serial.Serial('/dev/ttyUSB2',115200,timeout=1); time.sleep(0.3); s.reset_input_buffer(); s.read(200000); print('temiz')"
 
 
 --- ADIM 3 : RESET ---
@@ -34,7 +30,7 @@ KART : 4 kez blink, LD0 yanik kalir
 
 --- ADIM 4 : AGIRLIKLAR ---
 cd ~/Desktop/ZUGA-IC-final
-python3 demo/load_weights.py $P
+python3 demo/load_weights.py /dev/ttyUSB2
 
 BEKLE: kart: b'WOK\n'   (TEK satir)
 KART : LD7 (en sol) yanar
@@ -43,14 +39,14 @@ LD7 YANMADAN ADIM 5'E GECME. Yigin geldiyse: ADIM 2 -> 3 -> 4
 
 --- ADIM 5 : TEST (juri ekrani, ~1 dk) ---
 cd ~/fpga_demo/demo_program
-python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest_demo40.csv --core-port $P --stream-port $P --core-baud 115200 --stream-baud 115200 --no-robustness
+python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest_demo40.csv --core-port /dev/ttyUSB2 --stream-port /dev/ttyUSB2 --core-baud 115200 --stream-baud 115200 --no-robustness
 
 BEKLE: Golden agreement: 100.00 % | mismatches: 0 | timeouts: 0
 
 
 --- ADIM 6 : TAM SET (istenirse, ~3 dk) ---
 cd ~/fpga_demo/demo_program
-python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest.csv --core-port $P --stream-port $P --core-baud 115200 --stream-baud 115200
+python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest.csv --core-port /dev/ttyUSB2 --stream-port /dev/ttyUSB2 --core-baud 115200 --stream-baud 115200
 
 BEKLE: Golden agreement: 99.36 % | mismatches: 1 | timeouts: 0 | robustness: 10/10
 
@@ -59,16 +55,16 @@ BEKLE: Golden agreement: 99.36 % | mismatches: 1 | timeouts: 0 | robustness: 10/
 HATA COZUMLERI
 ============================================================
 
-# Prolific gorunmuyor
-TTL kablonun USB ucunu cikar-tak, baska USB portu dene
+# Port bulunamadi / Prolific gorunmuyor
 ls -l /dev/serial/by-id/
+TTL kablonun USB ucunu cikar-tak, baska USB portu dene
 
 # "No devices detected" (ADIM 1)
 sudo pkill -f hw_server; sudo pkill -f cs_server; sleep 1; sudo modprobe -r ftdi_sio; sleep 1
 cd ~/Desktop/ZUGA-IC-final && vivado -mode batch -source prog_only.tcl 2>&1 | grep -E "PROGRAMLANDI|ERROR"
 
 # "Permission denied"
-sudo chmod 666 $P
+sudo chmod 666 /dev/ttyUSB2
 
 # WOK yigini geldi / LD7 yanmadi
 ADIM 2 -> ADIM 3 -> ADIM 4
