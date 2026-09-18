@@ -1,32 +1,77 @@
-=== ADIM 1 ===
+============================================================
+ZUGA-IC DEMO
+Port: /dev/ttyUSB0
+Kablo: yesil=JC pin4  beyaz=JC pin1  siyah=JC pin5  kirmizi=BAGLANMAZ
+============================================================
+
+--- ADIM 1 : BITSTREAM ---
 cd ~/Desktop/ZUGA-IC-final
 vivado -mode batch -source prog_only.tcl 2>&1 | grep -E "PROGRAMLANDI|ERROR"
 
-=== ADIM 2 ===
-Kartta kirmizi CPU_RESETN butonuna bas
-8 LED 4 kez yanip soner, LD0 (en sag) yanik kalir
+BEKLE: ==== KART PROGRAMLANDI ====
+KART : 8 LED 4 kez yanip soner, LD0 (en sag) yanik kalir
+NOT  : LED'ler zaten yaniyorsa bu adimi ATLA
 
-=== ADIM 3 ===
+
+--- ADIM 2 : TAMPON TEMIZLE ---
+cd ~/Desktop/ZUGA-IC-final
+python3 -c "import serial,time; s=serial.Serial('/dev/ttyUSB0',115200,timeout=1); time.sleep(0.3); s.reset_input_buffer(); s.read(200000); print('temiz')"
+
+
+--- ADIM 3 : RESET ---
+Kartta kirmizi CPU_RESETN butonuna bas
+KART : 4 kez blink, sonra LD0 yanik kalir
+
+
+--- ADIM 4 : AGIRLIKLAR ---
 cd ~/Desktop/ZUGA-IC-final
 python3 demo/load_weights.py /dev/ttyUSB0
 
-=== ADIM 4 ===
+BEKLE: kart: b'WOK\n'
+KART : LD7 (en sol) yanar
+NOT  : LD7 yanmadan ADIM 5'e gecme
+
+
+--- ADIM 5 : TEST (juri ekrani, ~1 dk) ---
 cd ~/fpga_demo/demo_program
 python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest_demo40.csv --core-port /dev/ttyUSB0 --stream-port /dev/ttyUSB0 --core-baud 115200 --stream-baud 115200 --no-robustness
 
-=== ADIM 5 (tam set, istenirse) ===
+BEKLE: Golden agreement: 100.00 % | mismatches: 0 | timeouts: 0
+
+
+--- ADIM 6 : TAM SET (istenirse, ~3 dk) ---
 cd ~/fpga_demo/demo_program
 python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest.csv --core-port /dev/ttyUSB0 --stream-port /dev/ttyUSB0 --core-baud 115200 --stream-baud 115200
 
-=== HATA: No devices detected ===
+BEKLE: Golden agreement: 99.36 % | mismatches: 1 | timeouts: 0 | robustness: 10/10
+
+
+============================================================
+HATA COZUMLERI
+============================================================
+
+# "No devices detected" (ADIM 1)
 sudo pkill -f hw_server; sudo pkill -f cs_server; sleep 1; sudo modprobe -r ftdi_sio; sleep 1
 cd ~/Desktop/ZUGA-IC-final && vivado -mode batch -source prog_only.tcl 2>&1 | grep -E "PROGRAMLANDI|ERROR"
 
-=== HATA: Permission denied ===
+# "Permission denied"
 sudo chmod 666 /dev/ttyUSB0
 
-=== HATA: port yok ===
+# Port gorunmuyor
 ls /dev/ttyUSB*
 
-=== YEDEK RAPOR ===
+# WOK yerine yigin geldi / LD7 yanmadi
+ADIM 2 -> ADIM 3 -> ADIM 4
+
+# Sonuc %0 veya hep ayni sinif
+ADIM 2 -> ADIM 3 -> ADIM 4 -> ADIM 5
+
+# LED'ler bir yanik bir sonuk (0xAA)
+ADIM 3 -> ADIM 4
+
+# Simulasyon kaniti (juri isterse)
+cd ~/Desktop/ZUGA-IC-final
+iverilog -g2012 -I sw/yz -o /tmp/yz.vvp rtl/yz_csr.sv rtl/yz_accel.sv rtl/yz_top.sv tb/yz_top_tb.sv && vvp /tmp/yz.vvp | tail -8
+
+# HICBIR SEY CALISMIYOR -> yedek raporu goster
 cat ~/Desktop/ZUGA-IC-final/demo/harness_results/full_20260918_99.36pct/report.md
