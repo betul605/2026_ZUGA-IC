@@ -1,0 +1,12 @@
+scenario,result,detail
+silence_zeros,PASS,"output=no, latency=106.1 ms, next valid frame responded"
+silence_dither,PASS,"output=no, latency=106.1 ms, next valid frame responded"
+saturate_max,PASS,"output=no, latency=111.4 ms, next valid frame responded"
+saturate_min,PASS,"output=silence, latency=95.8 ms, next valid frame responded"
+alternating,PASS,"output=silence, latency=117.6 ms, next valid frame responded"
+back_to_back,PASS,received responses for 5 of 5 back-to-back frames
+truncated_frame,PASS,recovery after truncated frame successful (output=no)
+oversized_frame,PASS,recovery after oversized frame successful (output=no)
+peripheral_interleave,SKIP,Optional scenario not run: hooks.interleave_core_hex is not configured; the peripheral-interleave test was not executed.
+determinism,PASS,1 distinct result(s) across 10 repetitions; latency jitter=2.78 ms
+recovery_after_idle,PASS,after a 3 s idle period responded (no)

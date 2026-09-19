@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
-| Date         : Wed Sep 16 19:45:52 2026
+| Date         : Sat Sep 19 12:05:47 2026
 | Host         : ubuntu-Lenovo-V15-G4-IAH running 64-bit Ubuntu 24.04.4 LTS
 | Command      : report_timing_summary -file build_fpga/timing_synth.rpt
 | Design       : fpga_top_axi
@@ -138,7 +138,7 @@ Table of Contents
 
     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-      8.591        0.000                      0                43571       -1.110      -90.082                    194                43571        4.500        0.000                       0                  7946  
+      8.591        0.000                      0                43580       -1.110      -90.082                    194                43580        4.500        0.000                       0                  7949  
 
 
 Timing constraints are not met.
@@ -163,7 +163,7 @@ sys_clk_pin  {0.000 5.000}      10.000          100.000
 Clock             WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
 -----             -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
 sys_clk_pin         8.591        0.000                      0                    2        0.139        0.000                      0                    2        4.500        0.000                       0                     3  
-  clk_25           13.263        0.000                      0                40045       -1.110      -90.082                    194                40045       18.750        0.000                       0                  7943  
+  clk_25           13.263        0.000                      0                40051       -1.110      -90.082                    194                40051       18.750        0.000                       0                  7946  
 
 
 ------------------------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ clk_25        sys_clk_pin         8.784        0.000                      0     
 
 Path Group         From Clock         To Clock               WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints  
 ----------         ----------         --------               -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------  
-**async_default**  clk_25             clk_25                  37.422        0.000                      0                 3524        0.005        0.000                      0                 3524  
+**async_default**  clk_25             clk_25                  37.422        0.000                      0                 3527        0.005        0.000                      0                 3527  
 
 
 ------------------------------------------------------------------------------------------------
@@ -384,7 +384,7 @@ Slack (MET) :             13.263ns  (required time - arrival time)
                          LUT2 (Prop_lut2_I0_O)        0.124     5.190 r  u_soc/u_core/sleep_unit_i/core_clock_gate_i/cnt_q[1]_i_4/O
                          net (fo=1, unplaced)         0.800     5.989    u_soc_n_9
                          BUFG (Prop_bufg_I_O)         0.096     6.085 r  cnt_q_reg[1]_i_2/O
-                         net (fo=2082, unplaced)      0.584     6.669    u_soc/u_core/id_stage_i/clk
+                         net (fo=2085, unplaced)      0.584     6.669    u_soc/u_core/id_stage_i/clk
                          FDCE                                         r  u_soc/u_core/id_stage_i/alu_operand_b_ex_o_reg[1]/C
   -------------------------------------------------------------------    -------------------
                          FDCE (Prop_fdce_C_Q)         0.456     7.125 r  u_soc/u_core/id_stage_i/alu_operand_b_ex_o_reg[1]/Q
@@ -392,7 +392,7 @@ Slack (MET) :             13.263ns  (required time - arrival time)
                          LUT3 (Prop_lut3_I0_O)        0.295     8.247 r  u_soc/u_core/id_stage_i/gen_mhpmcounter[0].gen_implemented.mhpmcounter_q[0][31]_i_4/O
                          net (fo=2, unplaced)         0.913     9.160    u_soc/u_core/id_stage_i/gen_mhpmcounter[0].gen_implemented.mhpmcounter_q[0][31]_i_4_n_0
                          LUT6 (Prop_lut6_I0_O)        0.124     9.284 r  u_soc/u_core/id_stage_i/gen_mcountinhibit[0].gen_implemented.mcountinhibit_q[0]_i_3/O
-                         net (fo=2, unplaced)         0.460     9.744    u_soc/u_core/id_stage_i/controller_i/trans_addr_q[2]_i_6
+                         net (fo=2, unplaced)         0.460     9.744    u_soc/u_core/id_stage_i/controller_i/mcause_q[4]_i_3
                          LUT6 (Prop_lut6_I0_O)        0.124     9.868 r  u_soc/u_core/id_stage_i/controller_i/clock_en_i_3/O
                          net (fo=2, unplaced)         0.460    10.328    u_soc/u_core/id_stage_i/controller_i/csr_access_ex_o_reg_0
                          LUT5 (Prop_lut5_I1_O)        0.124    10.452 r  u_soc/u_core/id_stage_i/controller_i/clock_en_i_2/O
@@ -479,7 +479,7 @@ Slack (VIOLATED) :        -1.110ns  (arrival time - required time)
                          LUT2 (Prop_lut2_I0_O)        0.124     5.190 r  u_soc/u_core/sleep_unit_i/core_clock_gate_i/cnt_q[1]_i_4/O
                          net (fo=1, unplaced)         0.800     5.989    u_soc_n_9
                          BUFG (Prop_bufg_I_O)         0.096     6.085 r  cnt_q_reg[1]_i_2/O
-                         net (fo=2082, unplaced)      0.584     6.669    u_soc/u_core/id_stage_i/int_controller_i/clk
+                         net (fo=2085, unplaced)      0.584     6.669    u_soc/u_core/id_stage_i/int_controller_i/clk
                          FDCE                                         r  u_soc/u_core/id_stage_i/int_controller_i/irq_q_reg[16]/C
                          clock pessimism             -0.428     6.241    
                          FDCE (Hold_fdce_C_D)         0.056     6.297    u_soc/u_core/id_stage_i/int_controller_i/irq_q_reg[16]
@@ -682,7 +682,7 @@ Slack (MET) :             37.422ns  (required time - arrival time)
                          FDCE (Prop_fdce_C_Q)         0.456     5.522 r  rst_n_clean_reg/Q
                          net (fo=2, unplaced)         0.322     5.844    u_soc/u_core/id_stage_i/register_file_i/rst_n_clean
                          LUT1 (Prop_lut1_I0_O)        0.295     6.139 f  u_soc/u_core/id_stage_i/register_file_i/cnt_q[1]_i_3/O
-                         net (fo=3507, unplaced)      0.916     7.055    u_soc/u_core_n_0
+                         net (fo=3510, unplaced)      0.916     7.055    u_soc/u_core_n_0
                          FDCE                                         f  u_soc/instr_rdata_reg[0]/CLR
   -------------------------------------------------------------------    -------------------
 
@@ -746,7 +746,7 @@ Slack (MET) :             0.005ns  (arrival time - required time)
                          FDCE (Prop_fdce_C_Q)         0.141     1.533 r  rst_n_clean_reg/Q
                          net (fo=2, unplaced)         0.136     1.669    u_soc/u_core/id_stage_i/register_file_i/rst_n_clean
                          LUT1 (Prop_lut1_I0_O)        0.098     1.767 f  u_soc/u_core/id_stage_i/register_file_i/cnt_q[1]_i_3/O
-                         net (fo=3507, unplaced)      0.386     2.153    u_soc/u_core/ex_stage_i/alu_i/alu_div_i/FSM_onehot_State_SP_reg[2]_1
+                         net (fo=3510, unplaced)      0.386     2.153    u_soc/u_core/ex_stage_i/alu_i/alu_div_i/FSM_onehot_State_SP_reg[2]_1
                          FDCE                                         f  u_soc/u_core/ex_stage_i/alu_i/alu_div_i/AReg_DP_reg[0]/CLR
   -------------------------------------------------------------------    -------------------
 
@@ -764,7 +764,7 @@ Slack (MET) :             0.005ns  (arrival time - required time)
                          LUT2 (Prop_lut2_I0_O)        0.056     2.015 r  u_soc/u_core/sleep_unit_i/core_clock_gate_i/cnt_q[1]_i_4/O
                          net (fo=1, unplaced)         0.355     2.370    u_soc_n_9
                          BUFG (Prop_bufg_I_O)         0.029     2.399 r  cnt_q_reg[1]_i_2/O
-                         net (fo=2082, unplaced)      0.259     2.658    u_soc/u_core/ex_stage_i/alu_i/alu_div_i/clk
+                         net (fo=2085, unplaced)      0.259     2.658    u_soc/u_core/ex_stage_i/alu_i/alu_div_i/clk
                          FDCE                                         r  u_soc/u_core/ex_stage_i/alu_i/alu_div_i/AReg_DP_reg[0]/C
                          clock pessimism             -0.422     2.236    
                          FDCE (Remov_fdce_C_CLR)     -0.088     2.148    u_soc/u_core/ex_stage_i/alu_i/alu_div_i/AReg_DP_reg[0]

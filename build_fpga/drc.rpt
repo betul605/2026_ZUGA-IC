@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
-| Date         : Wed Sep 16 19:47:17 2026
+| Date         : Sat Sep 19 12:07:14 2026
 | Host         : ubuntu-Lenovo-V15-G4-IAH running 64-bit Ubuntu 24.04.4 LTS
 | Command      : report_drc -file build_fpga/drc.rpt
 | Design       : fpga_top_axi
@@ -205,17 +205,17 @@ Related violations: <none>
 
 REQP-1840#1 Warning
 RAMB18 async control check  
-The RAMB18E1 u_soc/u_dram/u_sram/mem_reg has an input control pin u_soc/u_dram/u_sram/mem_reg/ADDRARDADDR[11] (net: u_soc/u_dram/u_sram/ADDRBWRADDR[6]) which is driven by a register (u_soc/u_bridge/FSM_sequential_state_q_reg[1]) that has an active asychronous set or reset. This may cause corruption of the memory contents and/or read values when the set/reset is asserted and is not analyzed by the default static timing analysis. It is suggested to eliminate the use of a set/reset to registers driving this RAMB pin or else use a synchronous reset in which the assertion of the reset is timed by default.
+The RAMB18E1 u_soc/u_dram/u_sram/mem_reg has an input control pin u_soc/u_dram/u_sram/mem_reg/ADDRARDADDR[11] (net: u_soc/u_dram/u_sram/ADDRBWRADDR[6]) which is driven by a register (u_soc/u_bridge/FSM_sequential_state_q_reg[0]) that has an active asychronous set or reset. This may cause corruption of the memory contents and/or read values when the set/reset is asserted and is not analyzed by the default static timing analysis. It is suggested to eliminate the use of a set/reset to registers driving this RAMB pin or else use a synchronous reset in which the assertion of the reset is timed by default.
 Related violations: <none>
 
 REQP-1840#2 Warning
 RAMB18 async control check  
-The RAMB18E1 u_soc/u_dram/u_sram/mem_reg has an input control pin u_soc/u_dram/u_sram/mem_reg/ADDRARDADDR[11] (net: u_soc/u_dram/u_sram/ADDRBWRADDR[6]) which is driven by a register (u_soc/u_bridge/FSM_sequential_state_q_reg[2]) that has an active asychronous set or reset. This may cause corruption of the memory contents and/or read values when the set/reset is asserted and is not analyzed by the default static timing analysis. It is suggested to eliminate the use of a set/reset to registers driving this RAMB pin or else use a synchronous reset in which the assertion of the reset is timed by default.
+The RAMB18E1 u_soc/u_dram/u_sram/mem_reg has an input control pin u_soc/u_dram/u_sram/mem_reg/ADDRARDADDR[11] (net: u_soc/u_dram/u_sram/ADDRBWRADDR[6]) which is driven by a register (u_soc/u_bridge/FSM_sequential_state_q_reg[1]) that has an active asychronous set or reset. This may cause corruption of the memory contents and/or read values when the set/reset is asserted and is not analyzed by the default static timing analysis. It is suggested to eliminate the use of a set/reset to registers driving this RAMB pin or else use a synchronous reset in which the assertion of the reset is timed by default.
 Related violations: <none>
 
 REQP-1840#3 Warning
 RAMB18 async control check  
-The RAMB18E1 u_soc/u_dram/u_sram/mem_reg has an input control pin u_soc/u_dram/u_sram/mem_reg/ADDRARDADDR[11] (net: u_soc/u_dram/u_sram/ADDRBWRADDR[6]) which is driven by a register (u_soc/u_bridge/addr_q_reg[29]) that has an active asychronous set or reset. This may cause corruption of the memory contents and/or read values when the set/reset is asserted and is not analyzed by the default static timing analysis. It is suggested to eliminate the use of a set/reset to registers driving this RAMB pin or else use a synchronous reset in which the assertion of the reset is timed by default.
+The RAMB18E1 u_soc/u_dram/u_sram/mem_reg has an input control pin u_soc/u_dram/u_sram/mem_reg/ADDRARDADDR[11] (net: u_soc/u_dram/u_sram/ADDRBWRADDR[6]) which is driven by a register (u_soc/u_bridge/addr_q_reg[25]) that has an active asychronous set or reset. This may cause corruption of the memory contents and/or read values when the set/reset is asserted and is not analyzed by the default static timing analysis. It is suggested to eliminate the use of a set/reset to registers driving this RAMB pin or else use a synchronous reset in which the assertion of the reset is timed by default.
 Related violations: <none>
 
 REQP-1840#4 Warning

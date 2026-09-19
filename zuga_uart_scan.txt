@@ -1,0 +1,36 @@
+=== KAYNAK DOSYALAR ===
+Command 'rg' not found, but can be installed with:
+sudo snap install ripgrep  # version 12.1.0, or
+sudo apt  install ripgrep  # version 14.0.3-1
+See 'snap info ripgrep' for additional versions.
+=== LOAD WEIGHTS ===
+#!/usr/bin/env python3
+# Kart programlandiktan sonra (LD0 yaniyorken) calistir: agirliklari UART uzerinden yukler, WOK bekler.
+import serial, time, struct, sys, os
+port = sys.argv[1] if len(sys.argv) > 1 else '/dev/ttyUSB2'
+root = os.path.join(os.path.dirname(__file__), '..')
+rd = lambda p: [int(x,16) for x in open(os.path.join(root,p)).read().split()]
+s = serial.Serial(port, 115200, timeout=2); s.reset_input_buffer()
+def send(b):
+    for i in range(0, len(b), 32): s.write(b[i:i+32]); time.sleep(0.002)
+send(bytes(v & 0xff for v in rd('yz_wconv.hex')))
+send(b''.join(struct.pack('<i', (v+2**31)%2**32-2**31) for v in rd('yz_bconv.hex')))
+send(bytes(v & 0xff for v in rd('yz_wfc.hex')))
+send(b''.join(struct.pack('<i', (v+2**31)%2**32-2**31) for v in rd('yz_bfc.hex')))
+time.sleep(0.5); r = s.read(64); print("kart:", r)
+sys.exit(0 if b'WOK' in r else 1)
+=== STREAM / INFERENCE PROTOKOLÜ ===
+Command 'rg' not found, but can be installed with:
+sudo snap install ripgrep  # version 12.1.0, or
+sudo apt  install ripgrep  # version 14.0.3-1
+See 'snap info ripgrep' for additional versions.
+=== CORE UART / INTERRUPT ===
+Command 'rg' not found, but can be installed with:
+sudo snap install ripgrep  # version 12.1.0, or
+sudo apt  install ripgrep  # version 14.0.3-1
+See 'snap info ripgrep' for additional versions.
+=== XDC UART PINLERİ ===
+Command 'rg' not found, but can be installed with:
+sudo snap install ripgrep  # version 12.1.0, or
+sudo apt  install ripgrep  # version 14.0.3-1
+See 'snap info ripgrep' for additional versions.

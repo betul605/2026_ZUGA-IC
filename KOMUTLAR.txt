@@ -1,106 +1,109 @@
 ============================================================
-ZUGA-IC DEMO      PORT: /dev/ttyUSB2
+ZUGA-IC DEMO
 Kablo: yesil=JC pin4  beyaz=JC pin1  siyah=JC pin5  kirmizi=BAGLANMAZ
 ============================================================
 
---- ADIM 0 : KONTROL ---
+--- ADIM 0 : PORTU BUL (HER ZAMAN ILK BU) ---
 ls -l /dev/serial/by-id/
 
-Prolific satiri -> ttyUSB2 olmali.
-Baska numara yaziyorsa asagidaki komutlarda ttyUSB2 yerine onu kullan.
-Prolific hic yoksa TTL kabloyu cikar-tak.
+Prolific satirindaki ttyUSBn numarasini kullan.
+Asagida ttyUSB0 yazili; farkliysa hepsini degistir.
+Digilent satirlari KARTA aittir, onlari kullanma.
 
 
 --- ADIM 1 : BITSTREAM (LED'ler sonukse; yaniyorsa ATLA) ---
 cd ~/Desktop/ZUGA-IC-final
 vivado -mode batch -source prog_only.tcl 2>&1 | grep -E "PROGRAMLANDI|ERROR"
 
-BEKLE: ==== KART PROGRAMLANDI ====
-KART : 8 LED 4 kez blink, LD0 (en sag) yanik kalir
 
-
---- ADIM 2 : TAMPON TEMIZLE ---
-python3 -c "import serial,time; s=serial.Serial('/dev/ttyUSB2',115200,timeout=1); time.sleep(0.3); s.reset_input_buffer(); s.read(200000); print('temiz')"
-
-
---- ADIM 3 : RESET ---
+--- ADIM 2 : RESET ---
 Kartta kirmizi CPU_RESETN butonuna bas
-KART : 4 kez blink, LD0 yanik kalir
+4 kez blink -> LD0 (en sag) yanik kalir
 
 
---- ADIM 4 : AGIRLIKLAR ---
+--- ADIM 3 : AGIRLIKLAR (LD7 yaniksa ATLA) ---
 cd ~/Desktop/ZUGA-IC-final
-python3 demo/load_weights.py /dev/ttyUSB2
+python3 demo/load_weights.py /dev/ttyUSB0
 
-BEKLE: kart: b'WOK\n'   (TEK satir)
-KART : LD7 (en sol) yanar
-LD7 YANMADAN ADIM 5'E GECME. Yigin geldiyse: ADIM 2 -> 3 -> 4
+BEKLE: kart: b'WOK\n'  ve LD7 (en sol) yanar
 
 
---- ADIM 5 : TEST (juri ekrani, ~1 dk) ---
+--- ADIM 4 : TEST -- JURI EKRANI (~1 dk) ---
 cd ~/fpga_demo/demo_program
-python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest_demo40.csv --core-port /dev/ttyUSB2 --stream-port /dev/ttyUSB2 --core-baud 115200 --stream-baud 115200 --no-robustness
+python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest_demo40.csv --core-port /dev/ttyUSB0 --stream-port /dev/ttyUSB0 --core-baud 115200 --stream-baud 115200 --no-robustness
 
-BEKLE: Golden agreement: 100.00 % | mismatches: 0 | timeouts: 0
+EKRAN: [1/40] go_27c24504_nohash_3: no (golden: no)
+       [4/40] yes_1496195a_nohash_3: yes (golden: yes)
+       [7/40] go_28e47b1a_nohash_1: unknown (golden: unknown)
+       ...
+SON  : Golden agreement: 100.00 % | mismatches: 0 | timeouts: 0
 
 
---- ADIM 6 : TAM SET (istenirse, ~3 dk) ---
+--- ADIM 5 : TAM SET (istenirse, ~3 dk) ---
 cd ~/fpga_demo/demo_program
-python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest.csv --core-port /dev/ttyUSB2 --stream-port /dev/ttyUSB2 --core-baud 115200 --stream-baud 115200
+python3 demo_harness.py run -c takim_icd.json --manifest public_dataset/manifest.csv --core-port /dev/ttyUSB0 --stream-port /dev/ttyUSB0 --core-baud 115200 --stream-baud 115200
 
-BEKLE: Golden agreement: 99.36 % | mismatches: 1 | timeouts: 0 | robustness: 10/10
+SON: Golden agreement: 99.36 % | mismatches: 1 | timeouts: 0 | robustness: 10/10
+
+
+--- ADIM 6 : JURI FLASH'I VERIRSE ---
+ls /media/$USER/
+ls -R /media/$USER/<FLASH_ADI>/ | head -30
+head -3 /media/$USER/<FLASH_ADI>/manifest.csv
+cp -r /media/$USER/<FLASH_ADI>/ ~/juri_vektorleri
+
+cd ~/fpga_demo/demo_program
+python3 demo_harness.py run -c takim_icd.json --manifest ~/juri_vektorleri/manifest.csv --core-port /dev/ttyUSB0 --stream-port /dev/ttyUSB0 --core-baud 115200 --stream-baud 115200
+
+NOT: manifest ile vectors/ klasoru AYNI yerde kalmali.
 
 
 ============================================================
 HATA COZUMLERI
 ============================================================
 
-# Port bulunamadi / Prolific gorunmuyor
-ls -l /dev/serial/by-id/
+# Prolific gorunmuyor
 TTL kablonun USB ucunu cikar-tak, baska USB portu dene
+ls -l /dev/serial/by-id/
 
 # "No devices detected" (ADIM 1)
 sudo pkill -f hw_server; sudo pkill -f cs_server; sleep 1; sudo modprobe -r ftdi_sio; sleep 1
 cd ~/Desktop/ZUGA-IC-final && vivado -mode batch -source prog_only.tcl 2>&1 | grep -E "PROGRAMLANDI|ERROR"
+(ilk seferde olmazsa TEKRARLA, genelde 2. denemede geciyor)
 
 # "Permission denied"
-sudo chmod 666 /dev/ttyUSB2
+sudo chmod 666 /dev/ttyUSB0
 
-# WOK yigini geldi / LD7 yanmadi
-ADIM 2 -> ADIM 3 -> ADIM 4
+# Tampon kirli (WOK yigini geldi / cevap yok)
+python3 -c "import serial,time; s=serial.Serial('/dev/ttyUSB0',115200,timeout=1); time.sleep(0.3); s.reset_input_buffer(); s.read(200000); print('temiz')"
+Sonra: ADIM 2 -> ADIM 3 -> ADIM 4
 
 # Sonuc %0 veya hep ayni sinif
-ADIM 2 -> ADIM 3 -> ADIM 4 -> ADIM 5
+ADIM 2 -> ADIM 3 -> ADIM 4
 
 # LED'ler bir yanik bir sonuk (0xAA)
-ADIM 3 -> ADIM 4
+ADIM 2 -> ADIM 3
 
-# Simulasyon kaniti (juri isterse)
+# Simulasyon kaniti (kart gerekmez)
 cd ~/Desktop/ZUGA-IC-final
 iverilog -g2012 -I sw/yz -o /tmp/yz.vvp rtl/yz_csr.sv rtl/yz_accel.sv rtl/yz_top.sv tb/yz_top_tb.sv && vvp /tmp/yz.vvp | tail -8
 
 # HICBIR SEY CALISMIYOR -> yedek rapor
-cat ~/Desktop/ZUGA-IC-final/demo/harness_results/full_20260918_99.36pct/report.md
+cat ~/Desktop/ZUGA-IC-final/demo/harness_results/full_20260919_99.36pct/report.md
+
 
 ============================================================
 LED ANLAMLARI
-4x blink = reset, program basladi
-LD0      = agirlik bekliyor
-LD7      = agirliklar yuklu, calismaya hazir
-LD6      = cikarim suruyor
-kisa tek LED = sonuc (LD0 silence, LD1 unknown, LD2 yes, LD3 no)
-0xAA     = hizlandirici timeout
-============================================================
+4x blink      = reset, program basladi
+LD0 (en sag)  = agirlik bekliyor
+LD7 (en sol)  = agirliklar yuklu, calismaya hazir
+LD6           = cikarim suruyor
+kisa tek LED  = sonuc (LD0 silence, LD1 unknown, LD2 yes, LD3 no)
+0xAA          = hizlandirici timeout
 
+KURALLAR
+1) LED'ler yaniyorsa ADIM 1'i calistirma.
+2) LD7 yaniksa ADIM 3'u atla, dogrudan ADIM 4.
+3) Komutun sonuna | tail -2 EKLEME -- yes/no satirlari gorunmez.
+4) BITSTREAM YEDEGI: ~/ZUGA_YEDEK_1100/
 ============================================================
-ONEMLI KURALLAR
-============================================================
-1) LED'ler yaniyorsa ADIM 1'i (vivado) CALISTIRMA.
-   Kart zaten programli, gereksiz hata alirsin.
-
-2) LD7 (en sol) yanıksa ADIM 4'u (load_weights) ATLA.
-   Agirliklar zaten yuklu, dogrudan ADIM 5'e (test) gec.
-   load_weights sadece LD0 yanikken calistirilir.
-
-3) load_weights bos cevap verdiyse (kart: b'') panige gerek yok,
-   LD7'ye bak. Yanıksa test calisir.
